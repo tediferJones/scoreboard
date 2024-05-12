@@ -21,5 +21,4 @@ export interface GameInfo {
 
 export interface ServerMsg extends Omit<ActiveGame, 'players'> {
   players: SocketData[],
-  render: string,
 }

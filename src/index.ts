@@ -9,19 +9,19 @@
 //
 // serverMsg should reflect the current games state, maybe just return the whole active game obj
 
-import Waiting from '@/components/waiting';
+// import Waiting from '@/components/waiting';
 import { ActiveGame, ClientSocket, GameInfo, ServerMsg } from './types';
-import ReactDom from 'react-dom/server';
+// import ReactDom from 'react-dom/server';
 
-await Bun.build({
-  entrypoints: ['src/client.ts'],
-  outdir: 'src/public',
-})
+// await Bun.build({
+//   entrypoints: ['src/client.ts'],
+//   outdir: 'src/public',
+// })
 
 const router = new Bun.FileSystemRouter({
   style: 'nextjs',
   dir: 'src/public/',
-  fileExtensions: ['.html', '.js']
+  fileExtensions: ['.html', '.js', '.css']
 })
 console.log(router)
 
@@ -33,7 +33,7 @@ const games: { [key: string]: GameInfo } = {
   }
 }
 
-const handler: { [key: string]: (ws: ClientSocket, msg: string, gameCode: string) => string } = {
+const handler: { [key: string]: (ws: ClientSocket, msg: string, gameCode: string) => ServerMsg } = {
   start: (ws, msg, gameCode) => {
     const data = JSON.parse(msg);
     ws.data = {
@@ -48,7 +48,10 @@ const handler: { [key: string]: (ws: ClientSocket, msg: string, gameCode: string
       gameInfo: games[data.gameType],
     }
 
-    return ReactDom.renderToString(<Waiting gameData={activeGames[gameCode]} />)
+    return {
+      ...activeGames[gameCode],
+      players: activeGames[gameCode].players.map(ws => ws.data)
+    }
   }
 }
 
@@ -82,7 +85,7 @@ const server = Bun.serve({
       const gameCode: string = data.gameCode || getGameCode()
       const res = handler[data.action](ws, msg.toString(), gameCode)
       activeGames[gameCode].players
-        .forEach(socket => socket.send(res))
+        .forEach(socket => socket.send(JSON.stringify(res)))
       console.log(activeGames)
     },
     open(ws: ClientSocket) {
