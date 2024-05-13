@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.showOutline {
+  @apply border;
+  @apply rounded-lg;
+  @apply p-4;
+}
+
+input {
+  @apply border;
+}

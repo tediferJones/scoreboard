@@ -1,11 +1,40 @@
-// import { ServerMsg } from '@/types';
-// let ws: WebSocket;
+import { ServerMsg } from '@/types';
 
+interface StrIdxNode extends HTMLElement {
+  [key: string]: any
+}
+
+interface Props extends Partial<{ [key in keyof HTMLElement]: any }> {
+  [key: string]: any
+};
+
+function t(type: string, props?: Props, children?: HTMLElement[]) {
+  const node: StrIdxNode = document.createElement(type);
+  if (props) Object.keys(props).forEach(propKey => node[propKey] = props[propKey]);
+  if (children?.length) node.append(...children);
+  return node;
+}
+
+const renderOpts: { [key: string]: (msg: ServerMsg) => Node } = {
+  waiting: (msg: ServerMsg) => {
+    console.log(msg)
+    return t('div', { className: 'showOutline' }, [
+      t('h1', { textContent: 'hello world 1' }),
+      t('h1', { textContent: 'hello world 2' }),
+      t('h1', {
+        textContent: 'hello world 3',
+        onclick: () => console.log('hello world from 3 UPDATED')
+      }),
+    ])
+  }
+}
+
+// let ws: WebSocket;
 document.querySelector('#startForm')?.addEventListener('submit', (e) => {
   e.preventDefault();
-  const ws = new WebSocket('ws://localhost:3000')
+  const ws = new WebSocket('ws://localhost:3000');
   ws.onopen = () => {
-    console.log('opened')
+    console.log('opened NEW TEST')
     ws.send(
       JSON.stringify({
         action: 'start',
@@ -19,33 +48,8 @@ document.querySelector('#startForm')?.addEventListener('submit', (e) => {
     const container = document.querySelector('#container');
     if (!container) throw Error('Cant find container')
     console.log(ws.data)
-    container.innerHTML = ws.data;
+    const msg: ServerMsg = JSON.parse(ws.data)
+    container.innerHTML = '';
+    container.appendChild(renderOpts[msg.status](msg))
   }
 })
-
-// const msg: ServerMsg = JSON.parse(ws.data);
-// console.log(msg)
-// render(msg)
-// function getTag(type: string, attrs: { [key: string]: any }) {
-//   const tag = document.createElement(type) as { [key: string]: any };
-//   Object.keys(attrs).forEach(key => tag[key] = attrs[key]);
-//   return tag as Node;
-// }
-// 
-// function render(msg: ServerMsg): void {
-//   console.log('in render func:', msg.status)
-//   const opts = {
-//     waiting: () => {
-//       const container = document.querySelector('#container');
-//       if (!container) throw Error('no container div')
-//       container.innerHTML = msg.render;
-//       // container.appendChild(getTag('h1', { innerText: 'Waiting for players', className: 'text-xl' }))
-//       // msg.players.map(player => player.username).forEach(user => {
-//       //   container.appendChild(getTag('div', { innerText: user }));
-//       // })
-//     },
-//     running: () => {
-// 
-//     }
-//   }[msg.status]()
-// }

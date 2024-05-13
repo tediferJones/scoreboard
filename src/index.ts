@@ -1,22 +1,13 @@
-// What do we want?
-// Server should be able to act as web server and websocket server
 // Can we use ws.subscribe instead of using activeGames obj?
-//
-// clientMsg should look like {
-//   action: 'start' | 'connect',
-//   gameCode?: string, (required for connect action)
-// }
-//
-// serverMsg should reflect the current games state, maybe just return the whole active game obj
 
-// import Waiting from '@/components/waiting';
 import { ActiveGame, ClientSocket, GameInfo, ServerMsg } from './types';
-// import ReactDom from 'react-dom/server';
 
-// await Bun.build({
-//   entrypoints: ['src/client.ts'],
-//   outdir: 'src/public',
-// })
+await Bun.build({
+  entrypoints: ['src/client.ts'],
+  outdir: 'src/public',
+})
+
+Bun.spawnSync('bunx tailwindcss -i src/globals.css -o src/public/styles.css'.split(' '))
 
 const router = new Bun.FileSystemRouter({
   style: 'nextjs',
