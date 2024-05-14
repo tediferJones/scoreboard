@@ -9,37 +9,32 @@
     <script type='text/javascript' src='https://cdn.jsdelivr.net/gh/vanjs-org/van/public/van-1.5.0.nomodule.min.js'></script>
     -->
   </head>
-  <body>
-    <div class='showOutline w-4/5 mx-auto p-4 my-12 flex flex-col items-center gap-4 rounded-lg'
+  <body class='min-h-screen flex justify-center items-center'>
+    <form class='showOutline w-4/5 grid grid-cols-3 gap-4'
       id='container'
     >
-      <h1 class='text-xl'>Scoreboard</h1>
-      <form class='flex flex-col gap-4' id='startForm'>
-        <label class='flex gap-4 items-center'>
-          Username:
-          <input class='rounded-lg p-2'
-            id='username'
-            type='text'
-            maxlength='32'
-            required
-            value='testUser'
-          />
-        </label>
-        <select class='p-2 rounded-lg bg-pink-300' id='gameType' required>
-          <option value='3-5-8'>3-5-8</option>
-          <option value='shanghai'>Shanghai</option>
-        </select>
-        <label class='flex gap-4 items-center' for='connectionCode'>
-          Join Game:
-          <input class='rounded-lg p-2'
-            id='connectionCode'
-            type='text'
-          />
-        </label>
-        <button class='bg-blue-400 px-4 py-2 rounded-lg' id='startGame'>
-          Start Game
-        </button>
-      </form>
-    </div>
+      <h1 class='text-xl text-center col-span-3'>Scoreboard</h1>
+      <label for='username'>Username:</label>
+      <input class='col-span-2 w-full'
+        id='username'
+        type='text'
+        maxlength='32'
+        required
+        value='testUser'
+      />
+      <hr class='col-span-3' />
+      <label for='gameType'>Game Type:</label>
+      <select id='gameType' required>
+        <option value='3-5-8'>3-5-8</option>
+        <option value='shanghai'>Shanghai</option>
+      </select>
+      <button id='startGame'>Create Game</button>
+      <label for='joinCode'>Join Game:</label>
+      <input id='joinCode'
+        type='text'
+        maxlength='5'
+      />
+      <button id='joinGame'>Join Game</button>
+    </form>
   </body>
 </html>

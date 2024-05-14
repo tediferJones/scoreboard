@@ -8,6 +8,21 @@
   @apply p-4;
 }
 
-input {
+input, select {
   @apply border;
+  @apply rounded-lg;
+  @apply p-2;
+  @apply bg-white;
+}
+
+button {
+  @apply bg-blue-400;
+  @apply px-4;
+  @apply py-2;
+  @apply rounded-lg;
+}
+
+label {
+  @apply text-center;
+  @apply my-auto;
 }

@@ -1,6 +1,17 @@
+// TO-DO
+//
 // Can we use ws.subscribe instead of using activeGames obj?
+// Extract getServerMsg to its own function
+// Can we create game join links? i.e. domain.com?gameCode=12345
 
-import { ActiveGame, ClientSocket, GameInfo, ServerMsg } from './types';
+import {
+  ActiveGame,
+  ClientMsg,
+  ClientSocket,
+  GameInfo,
+  GameTypes,
+  ServerMsg
+} from '@/types';
 
 await Bun.build({
   entrypoints: ['src/client.ts'],
@@ -17,27 +28,49 @@ const router = new Bun.FileSystemRouter({
 console.log(router)
 
 const activeGames: { [key: string]: ActiveGame } = {};
-const games: { [key: string]: GameInfo } = {
+const games: { [key in GameTypes]: GameInfo } = {
   '3-5-8': {
     minPlayers: 3,
     maxPlayers: 3,
+  },
+  'shanghai': {
+    minPlayers: 2,
+    maxPlayers: 8,
   }
 }
 
-const handler: { [key: string]: (ws: ClientSocket, msg: string, gameCode: string) => ServerMsg } = {
-  start: (ws, msg, gameCode) => {
-    const data = JSON.parse(msg);
+const handler: { [key in ClientMsg['action']]: (ws: ClientSocket, msg: ClientMsg) => ServerMsg } = {
+  start: (ws, msg) => {
+    if (!msg.gameType || !msg.gameCode) throw Error('gameType is required to create a new game')
     ws.data = {
-      username: data.username,
+      username: msg.username,
       score: 0,
     }
+    const { gameCode } = msg;
 
     activeGames[gameCode] = {
       status: 'waiting',
       players: [ws],
-      gameType: data.gameType,
-      gameInfo: games[data.gameType],
+      gameType: msg.gameType,
+      gameInfo: games[msg.gameType],
+      gameCode: gameCode,
     }
+
+    return {
+      ...activeGames[gameCode],
+      players: activeGames[gameCode].players.map(ws => ws.data)
+    }
+  },
+  join: (ws, msg) => {
+    if (!msg.gameCode) throw Error('gameCode is required to join a game')
+    const { gameCode } = msg;
+    console.log('game code', gameCode)
+    ws.data = {
+      username: msg.username,
+      score: 0,
+    }
+
+    activeGames[gameCode].players.push(ws)
 
     return {
       ...activeGames[gameCode],
@@ -70,13 +103,14 @@ const server = Bun.serve({
   },
 
   websocket: {
-    message(ws: ClientSocket, msg) {
-      console.log(msg)
-      const data = JSON.parse(msg.toString())
-      const gameCode: string = data.gameCode || getGameCode()
-      const res = handler[data.action](ws, msg.toString(), gameCode)
-      activeGames[gameCode].players
+    message(ws: ClientSocket, data) {
+      console.log(data)
+      const msg: ClientMsg = JSON.parse(data.toString())
+      if (!msg.gameCode) msg.gameCode = getGameCode();
+      const res = handler[msg.action](ws, msg)
+      activeGames[msg.gameCode].players
         .forEach(socket => socket.send(JSON.stringify(res)))
+
       console.log(activeGames)
     },
     open(ws: ClientSocket) {

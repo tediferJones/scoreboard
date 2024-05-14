@@ -18,30 +18,29 @@ function t(type: string, props?: Props, children?: HTMLElement[]) {
 const renderOpts: { [key: string]: (msg: ServerMsg) => Node } = {
   waiting: (msg: ServerMsg) => {
     console.log(msg)
-    return t('div', { className: 'showOutline' }, [
-      t('h1', { textContent: 'hello world 1' }),
-      t('h1', { textContent: 'hello world 2' }),
-      t('h1', {
-        textContent: 'hello world 3',
-        onclick: () => console.log('hello world from 3 UPDATED')
-      }),
+    const newState =  t('div', { className: 'flex flex-col gap-4' }, [
+      t('h1', { textContent: 'Waiting...', className: 'text-xl text-center' }),
+      t('h1', { textContent: `${msg.gameType} requires ${msg.gameInfo.minPlayers} - ${msg.gameInfo.maxPlayers} players` }),
+      t('h1', { textContent: `Game Code: ${msg.gameCode}` }),
+      ...msg.players.map(player => t('p', { textContent: player.username })),
+      // t('h1', {
+      //   textContent: 'hello world 3',
+      //   onclick: () => console.log('hello world from 3 UPDATED')
+      // }),
     ])
+    return newState
   }
 }
 
-// let ws: WebSocket;
-document.querySelector('#startForm')?.addEventListener('submit', (e) => {
-  e.preventDefault();
+function getValById(id: string) {
+  return (document.querySelector(`#${id}`) as HTMLInputElement).value
+}
+
+function startWebSocket(initMsg: { [key: string]: string }) {
   const ws = new WebSocket('ws://localhost:3000');
   ws.onopen = () => {
     console.log('opened NEW TEST')
-    ws.send(
-      JSON.stringify({
-        action: 'start',
-        gameType: (document.querySelector('#gameType') as HTMLSelectElement).value,
-        username: (document.querySelector('#username') as HTMLInputElement).value,
-      })
-    )
+    ws.send(JSON.stringify(initMsg))
   }
 
   ws.onmessage = (ws) => {
@@ -52,4 +51,23 @@ document.querySelector('#startForm')?.addEventListener('submit', (e) => {
     container.innerHTML = '';
     container.appendChild(renderOpts[msg.status](msg))
   }
+}
+
+document.querySelector('#joinGame')?.addEventListener('click', (e) => {
+  e.preventDefault();
+  startWebSocket({
+    action: 'join',
+    gameCode: getValById('joinCode'),
+    username: getValById('username'),
+  });
+})
+
+
+document.querySelector('#startGame')?.addEventListener('click', (e) => {
+  e.preventDefault();
+  startWebSocket({
+    action: 'start',
+    gameType: getValById('gameType'),
+    username: getValById('username'),
+  });
 })

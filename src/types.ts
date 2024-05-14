@@ -7,11 +7,14 @@ export interface SocketData {
 
 export type ClientSocket = ServerWebSocket<SocketData>
 
+export type GameTypes = '3-5-8' | 'shanghai'
+
 export interface ActiveGame {
   status: 'waiting' | 'running'
   players: ClientSocket[],
-  gameType: string,
+  gameType: GameTypes,
   gameInfo: GameInfo
+  gameCode: string,
 }
 
 export interface GameInfo {
@@ -22,3 +25,16 @@ export interface GameInfo {
 export interface ServerMsg extends Omit<ActiveGame, 'players'> {
   players: SocketData[],
 }
+
+export interface StrObj {
+  [key: string]: string | undefined
+}
+
+export interface ClientMsg extends StrObj {
+  action: 'start' | 'join',
+  username: string,
+  gameType?: GameTypes,
+  gameCode?: string,
+}
+
+export type RequireProp<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
