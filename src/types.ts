@@ -10,11 +10,12 @@ export type ClientSocket = ServerWebSocket<SocketData>
 export type GameTypes = '3-5-8' | 'shanghai'
 
 export interface ActiveGame {
-  status: 'waiting' | 'running'
+  status: 'waiting' | 'running' | 'error'
   players: ClientSocket[],
   gameType: GameTypes,
   gameInfo: GameInfo
   gameCode: string,
+  errorMsg?: string,
 }
 
 export interface GameInfo {

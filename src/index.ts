@@ -12,13 +12,9 @@ import {
   GameTypes,
   ServerMsg
 } from '@/types';
+import build from './lib/build';
 
-await Bun.build({
-  entrypoints: ['src/client.ts'],
-  outdir: 'src/public',
-})
-
-Bun.spawnSync('bunx tailwindcss -i src/globals.css -o src/public/styles.css'.split(' '))
+await build();
 
 const router = new Bun.FileSystemRouter({
   style: 'nextjs',
@@ -64,7 +60,16 @@ const handler: { [key in ClientMsg['action']]: (ws: ClientSocket, msg: ClientMsg
   join: (ws, msg) => {
     if (!msg.gameCode) throw Error('gameCode is required to join a game')
     const { gameCode } = msg;
-    console.log('game code', gameCode)
+
+    if (activeGames[gameCode].players.some(player => player.data.username === msg.username)) {
+      return { 
+        ...activeGames[gameCode],
+        players: activeGames[gameCode].players.map(ws => ws.data),
+        status: 'error',
+        errorMsg: 'Username already exists'
+      }
+    }
+
     ws.data = {
       username: msg.username,
       score: 0,
@@ -108,8 +113,9 @@ const server = Bun.serve({
       const msg: ClientMsg = JSON.parse(data.toString())
       if (!msg.gameCode) msg.gameCode = getGameCode();
       const res = handler[msg.action](ws, msg)
-      activeGames[msg.gameCode].players
-        .forEach(socket => socket.send(JSON.stringify(res)))
+
+      res.status === 'error' ? ws.send(JSON.stringify(res)) :
+        activeGames[msg.gameCode].players.forEach(socket => socket.send(JSON.stringify(res)))
 
       console.log(activeGames)
     },
