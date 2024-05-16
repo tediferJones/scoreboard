@@ -3,6 +3,7 @@ import { ServerWebSocket } from 'bun';
 export interface SocketData {
   username: string,
   score: number,
+  ready: boolean,
 }
 
 export type ClientSocket = ServerWebSocket<SocketData>
@@ -10,7 +11,7 @@ export type ClientSocket = ServerWebSocket<SocketData>
 export type GameTypes = '3-5-8' | 'shanghai'
 
 export interface ActiveGame {
-  status: 'waiting' | 'running' | 'error'
+  status: 'waiting' | 'running' | 'error' | 'home' | 'getUsername'
   players: ClientSocket[],
   gameType: GameTypes,
   gameInfo: GameInfo
