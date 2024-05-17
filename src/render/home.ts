@@ -15,7 +15,7 @@ export default function home() {
       type: 'text',
       maxLength: '32',
       required: true,
-      value: 'testUser-'// + getGameCode(),
+      value: 'testUser-'// + randStr(5),
     }),
     t('hr', { className: 'col-span-3' }),
     t('label', { textContent: 'Game Type:', for: 'gameType' }),

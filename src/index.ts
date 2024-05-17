@@ -5,7 +5,7 @@
 // Can we create game join links? i.e. domain.com?gameCode=12345
 
 import build from '@/lib/build';
-import { getGameCode } from '@/lib/utils';
+import { randStr } from '@/lib/utils';
 import GamesManager from '@/lib/GamesManager';
 import { ClientMsg, ClientSocket, } from '@/types';
 
@@ -40,18 +40,24 @@ const server = Bun.serve({
     message(ws: ClientSocket, data) {
       console.log(data)
       const msg: ClientMsg = JSON.parse(data.toString())
-      if (!msg.gameCode) msg.gameCode = getGameCode();
+      if (!msg.gameCode) msg.gameCode = randStr(5);
       const res = gm.handler[msg.action](ws, msg)
       console.log(gm.activeGames)
 
-      res.status === 'error' ? ws.send(JSON.stringify(res)) :
-        gm.activeGames[msg.gameCode].players.forEach(socket => socket.send(JSON.stringify(res)))
+      // res.status === 'error' ? ws.send(JSON.stringify(res)) :
+      //   gm.activeGames[msg.gameCode].players.forEach(socket => socket.send(JSON.stringify(res)))
       if (res.status === 'error') {
         ws.send(JSON.stringify(res));
         ws.close();
       } else {
-        gm.activeGames[msg.gameCode].players
-          .forEach(socket => socket.send(JSON.stringify(res)))
+        // gm.activeGames[msg.gameCode].players
+        //   .forEach(socket => socket.send(JSON.stringify(res)))
+        // const dataRes = JSON.stringify(res)
+        // Object.keys(gm.activeGames[msg.gameCode].players).forEach(key => {
+        //   if (!msg.gameCode) throw Error('no gamecode at index.ts')
+        //   gm.activeGames[msg.gameCode].players[key].send(dataRes)
+        // })
+        gm.sendRes(res)
       }
 
     },

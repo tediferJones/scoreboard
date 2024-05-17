@@ -1,5 +1,5 @@
-import { setQueryParam, getTag as t, sendFunc } from '@/lib/utils';
-import { ServerMsg } from '@/types';
+import { sendMsg, setQueryParam, getTag as t, ws } from '@/lib/utils';
+import { ClientMsg, ServerMsg } from '@/types';
 
 export default function waiting(msg: ServerMsg) {
   const { minPlayers, maxPlayers } = msg.gameInfo;
@@ -14,12 +14,18 @@ export default function waiting(msg: ServerMsg) {
       t('a', { textContent: msg.gameCode, href: joinUrl, className: 'underline' }),
     ]),
     ...msg.players.map(player => 
-      t('p', { textContent: player.username }, [
+      t('div', { className: 'flex gap-4 w-full' }, [
+        t('p', { textContent: player.username, className: 'text-center my-auto flex-1' }),
         t('button', {
-          textContent: `is ready? ${player.ready}`,
-          onclick: (e: any) => {
-            console.log(e, 'send ready state')
-            sendFunc('hello')
+          textContent: player.ready ? '✓' : '✘',
+          onclick: player.username !== msg.username ? undefined : (e: any) => {
+            const gameCode = new URL(window.location.href).searchParams.get('gameCode');
+            sendMsg({
+              action: 'ready',
+              gameCode: gameCode || undefined,
+              username: player.username,
+              userId: msg.userId,
+            })
           }
         })
       ])

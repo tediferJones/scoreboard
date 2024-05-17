@@ -94,12 +94,18 @@ function waiting(msg) {
     getTag("h1", { textContent: "Game Code:", className: "flex flex-wrap gap-2" }, [
       getTag("a", { textContent: msg.gameCode, href: joinUrl, className: "underline" })
     ]),
-    ...msg.players.map((player) => getTag("p", { textContent: player.username }, [
+    ...msg.players.map((player) => getTag("div", { className: "flex gap-4 w-full" }, [
+      getTag("p", { textContent: player.username, className: "text-center my-auto flex-1" }),
       getTag("button", {
-        textContent: `is ready? ${player.ready}`,
-        onclick: (e) => {
-          console.log(e, "send ready state");
-          sendFunc("hello");
+        textContent: player.ready ? "\u2713" : "\u2718",
+        onclick: player.username !== msg.username ? undefined : (e) => {
+          const gameCode = new URL(window.location.href).searchParams.get("gameCode");
+          sendMsg({
+            action: "ready",
+            gameCode: gameCode || undefined,
+            username: player.username,
+            userId: msg.userId
+          });
         }
       })
     ]))
@@ -142,16 +148,18 @@ function setQueryParam(params) {
   });
   window.history.pushState({}, "", url);
 }
+function sendMsg(msg) {
+  ws2.send(JSON.stringify(msg));
+}
 function startWebSocket(initMsg) {
-  const ws = new WebSocket("ws://localhost:3000");
-  ws.onopen = () => {
+  ws2 = new WebSocket("ws://localhost:3000");
+  ws2.onopen = () => {
     console.log("opened", initMsg);
-    ws.send(JSON.stringify(initMsg));
-    sendFunc = ws.send.bind(ws);
+    ws2.send(JSON.stringify(initMsg));
   };
-  ws.onmessage = (ws2) => {
-    console.log(ws2.data);
+  ws2.onmessage = (ws2) => {
     const msg = JSON.parse(ws2.data);
+    console.log("NEW MESSAGE", msg);
     document.body.innerHTML = "";
     document.body.appendChild(renderOpts[msg.status](msg));
   };
@@ -163,7 +171,7 @@ var renderOpts = {
   error,
   running
 };
-var sendFunc;
+var ws2;
 
 // src/render/ru
 var queryParams = [

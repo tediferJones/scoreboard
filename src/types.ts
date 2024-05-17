@@ -12,7 +12,8 @@ export type GameTypes = '3-5-8' | 'shanghai'
 
 export interface ActiveGame {
   status: 'waiting' | 'running' | 'error' | 'home' | 'getUsername'
-  players: ClientSocket[],
+  // players: ClientSocket[],
+  players: { [key: string]: ClientSocket }
   gameType: GameTypes,
   gameInfo: GameInfo
   gameCode: string,
@@ -26,6 +27,8 @@ export interface GameInfo {
 
 export interface ServerMsg extends Omit<ActiveGame, 'players'> {
   players: SocketData[],
+  userId: string,
+  username: string,
 }
 
 export interface StrObj {
@@ -33,10 +36,11 @@ export interface StrObj {
 }
 
 export interface ClientMsg extends StrObj {
-  action: 'start' | 'join',
+  action: 'start' | 'join' | 'ready',
   username: string,
   gameType?: GameTypes,
   gameCode?: string,
+  userId: string,
 }
 
 export type RequireProp<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;

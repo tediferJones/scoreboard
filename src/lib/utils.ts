@@ -1,7 +1,7 @@
 import home from '@/render/home';
 import getUsername from '@/render/getUsername';
 import waiting from '@/render/waiting';
-import { ServerMsg } from '@/types';
+import { ClientMsg, ServerMsg } from '@/types';
 import error from '@/render/error';
 import running from '@/render/running';
 
@@ -20,9 +20,9 @@ export function getTag(type: keyof HTMLElementTagNameMap, props?: Props, childre
   return node;
 }
 
-export function getGameCode() {
+export function randStr(length: number) {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-  return [...Array(5).keys()].map(i => {
+  return [...Array(length).keys()].map(() => {
     return chars[Math.floor(Math.random() * chars.length)]
   }).join('')
 }
@@ -54,19 +54,23 @@ export const renderOpts: { [key in ServerMsg['status']]: (msg: ServerMsg) => Nod
   running,
 }
 
-export let sendFunc: Function;
+// export let sendFunc: Function;
+export let ws: WebSocket;
+export function sendMsg(msg: ClientMsg) {
+  ws.send(JSON.stringify(msg))
+}
 
 export function startWebSocket(initMsg: { [key: string]: string }) {
-  const ws = new WebSocket('ws://localhost:3000');
+  ws = new WebSocket('ws://localhost:3000');
   ws.onopen = () => {
     console.log('opened', initMsg)
     ws.send(JSON.stringify(initMsg))
-    sendFunc = ws.send.bind(ws)
+    // sendFunc = ws.send.bind(ws)
   }
 
   ws.onmessage = (ws) => {
-    console.log(ws.data)
     const msg: ServerMsg = JSON.parse(ws.data)
+    console.log('NEW MESSAGE', msg)
     document.body.innerHTML = '';
     document.body.appendChild(renderOpts[msg.status](msg))
   }

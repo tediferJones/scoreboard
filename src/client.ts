@@ -10,6 +10,7 @@ const queryParams = [
 }, {} as StrObj)
 console.log(queryParams)
 
+// Handle initial page render
 document.body.append(
   renderOpts[queryParams.gameCode ? 'getUsername' : 'home']({} as ServerMsg)
 )
