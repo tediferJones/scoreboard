@@ -1,5 +1,5 @@
-import { sendMsg, setQueryParam, getTag as t, ws } from '@/lib/utils';
-import { ClientMsg, ServerMsg } from '@/types';
+import { sendMsg, setQueryParam, getTag as t } from '@/lib/utils';
+import { ServerMsg } from '@/types';
 
 export default function waiting(msg: ServerMsg) {
   const { minPlayers, maxPlayers } = msg.gameInfo;
@@ -18,6 +18,7 @@ export default function waiting(msg: ServerMsg) {
         t('p', { textContent: player.username, className: 'text-center my-auto flex-1' }),
         t('button', {
           textContent: player.ready ? '✓' : '✘',
+          className: `text-xl ${player.ready ? 'bg-green-500' : 'bg-red-500'}`,
           onclick: player.username !== msg.username ? undefined : (e: any) => {
             const gameCode = new URL(window.location.href).searchParams.get('gameCode');
             sendMsg({

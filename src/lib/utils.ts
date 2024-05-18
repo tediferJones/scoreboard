@@ -3,7 +3,8 @@ import getUsername from '@/render/getUsername';
 import waiting from '@/render/waiting';
 import { ClientMsg, ServerMsg } from '@/types';
 import error from '@/render/error';
-import running from '@/render/running';
+import threeFiveEight from '@/render/threeFiveEight';
+import shanghai from '@/render/shanghai';
 
 export interface StrIdxNode extends HTMLElement {
   [key: string]: any
@@ -51,10 +52,10 @@ export const renderOpts: { [key in ServerMsg['status']]: (msg: ServerMsg) => Nod
   getUsername,
   waiting,
   error,
-  running,
+  threeFiveEight,
+  shanghai,
 }
 
-// export let sendFunc: Function;
 export let ws: WebSocket;
 export function sendMsg(msg: ClientMsg) {
   ws.send(JSON.stringify(msg))

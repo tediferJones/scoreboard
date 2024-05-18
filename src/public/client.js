@@ -1,4 +1,4 @@
-// src/render/running
+// src/render/shangha
 function home() {
   return getTag("form", { className: "showOutline w-4/5 grid grid-cols-3 gap-4", id: "initForm" }, [
     getTag("h1", { textContent: "Scoreboard", className: "text-xl text-center col-span-3" }),
@@ -9,12 +9,12 @@ function home() {
       type: "text",
       maxLength: "32",
       required: true,
-      value: "testUser-"
+      value: "testUser-" + randStr(5)
     }),
     getTag("hr", { className: "col-span-3" }),
     getTag("label", { textContent: "Game Type:", for: "gameType" }),
     getTag("select", { id: "gameType", value: "" }, [
-      getTag("option", { textContent: "3-5-8", value: "3-5-8" }),
+      getTag("option", { textContent: "3-5-8", value: "threeFiveEight" }),
       getTag("option", { textContent: "Shanghai", value: "shanghai" })
     ]),
     getTag("button", {
@@ -50,7 +50,7 @@ function home() {
   ]);
 }
 
-// src/render/running.tse.ts
+// src/render/shanghai.tsght
 function getUsername(msg) {
   const gameCode = new URL(window.location.href).searchParams.get("gameCode");
   return getTag("form", { className: "showOutline p-4 flex flex-col gap-4" }, [
@@ -64,7 +64,7 @@ function getUsername(msg) {
         type: "text",
         maxLength: "32",
         required: true,
-        value: "testUser-"
+        value: "testUser-" + randStr(5)
       }),
       getTag("button", {
         textContent: "Join Game",
@@ -82,7 +82,7 @@ function getUsername(msg) {
   ]);
 }
 
-// src/render/running.ts
+// src/render/shanghai.t
 function waiting(msg) {
   const { minPlayers, maxPlayers } = msg.gameInfo;
   const requiredPlayers = minPlayers === maxPlayers ? minPlayers : `${minPlayers} - ${maxPlayers}`;
@@ -98,6 +98,7 @@ function waiting(msg) {
       getTag("p", { textContent: player.username, className: "text-center my-auto flex-1" }),
       getTag("button", {
         textContent: player.ready ? "\u2713" : "\u2718",
+        className: `text-xl ${player.ready ? "bg-green-500" : "bg-red-500"}`,
         onclick: player.username !== msg.username ? undefined : (e) => {
           const gameCode = new URL(window.location.href).searchParams.get("gameCode");
           sendMsg({
@@ -112,18 +113,69 @@ function waiting(msg) {
   ]);
 }
 
-// src/render/running.
+// src/render/shanghai
 function error(msg) {
   setQueryParam({ gameCode: msg.gameCode });
   return getUsername(msg);
 }
 
-// src/render/running.ts
-function running(msg) {
-  return getTag("h1", { textContent: "game is running" });
+// src/render/shanghai.tsght.ts
+function threeFiveEight(msg) {
+  const roundCount = msg.players[0].score.length;
+  return getTag("div", { className: "showOutline flex flex-col gap-4 items-center w-4/5 mx-auto" }, [
+    getTag("h1", { textContent: "Playing:" + msg.gameType }),
+    getTag("table", { className: "w-4/5" }, [
+      getTag("tr", {}, [
+        getTag("th", { textContent: "Round #", className: "border" }),
+        ...msg.players.map((player) => {
+          return getTag("th", { textContent: player.username, className: "border" });
+        })
+      ]),
+      ...msg.players[0].score.map((_, i) => {
+        return getTag("tr", {}, [
+          getTag("td", { textContent: `Round ${i + 1}`, className: "border text-center font-semibold" }),
+          ...msg.players.map((player) => {
+            return getTag("td", {
+              textContent: player.score[i] !== undefined ? player.score[i] : "X",
+              className: "border text-center"
+            });
+          })
+        ]);
+      }),
+      getTag("tr", {}, [
+        getTag("td", { textContent: "Total", className: "border text-center font-semibold" }),
+        ...msg.players.map((player) => {
+          return getTag("td", {
+            textContent: player.score.reduce((total, round) => total += round, 0),
+            className: "border text-center font-semibold"
+          });
+        })
+      ])
+    ]),
+    getTag("div", { className: "flex flew-wrap gap-4" }, [
+      getTag("label", { textContent: "Score:", for: "score" }),
+      getTag("input", { type: "number", id: "score", value: "0" }),
+      getTag("button", { textContent: "Submit", onclick: () => {
+        console.log("submit score");
+        sendMsg({
+          action: "score",
+          score: getValById("score"),
+          username: msg.username,
+          userId: msg.userId,
+          gameCode: msg.gameCode
+        });
+      } })
+    ]),
+    getTag("div", { textContent: JSON.stringify(msg) })
+  ]);
 }
 
-// src/render/runni
+// src/render/shanghai.ts
+function shanghai(msg) {
+  return getTag("h1", { textContent: "Shanghai game is running" });
+}
+
+// src/render/shang
 function getTag(type, props, children) {
   const node = document.createElement(type);
   if (props)
@@ -131,6 +183,12 @@ function getTag(type, props, children) {
   if (children?.length)
     node.append(...children);
   return node;
+}
+function randStr(length) {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  return [...Array(length).keys()].map(() => {
+    return chars[Math.floor(Math.random() * chars.length)];
+  }).join("");
 }
 function getValById(id) {
   return document.querySelector(`#${id}`).value;
@@ -149,16 +207,16 @@ function setQueryParam(params) {
   window.history.pushState({}, "", url);
 }
 function sendMsg(msg) {
-  ws2.send(JSON.stringify(msg));
+  ws.send(JSON.stringify(msg));
 }
 function startWebSocket(initMsg) {
-  ws2 = new WebSocket("ws://localhost:3000");
-  ws2.onopen = () => {
+  ws = new WebSocket("ws://localhost:3000");
+  ws.onopen = () => {
     console.log("opened", initMsg);
-    ws2.send(JSON.stringify(initMsg));
+    ws.send(JSON.stringify(initMsg));
   };
-  ws2.onmessage = (ws2) => {
-    const msg = JSON.parse(ws2.data);
+  ws.onmessage = (ws) => {
+    const msg = JSON.parse(ws.data);
     console.log("NEW MESSAGE", msg);
     document.body.innerHTML = "";
     document.body.appendChild(renderOpts[msg.status](msg));
@@ -169,11 +227,12 @@ var renderOpts = {
   getUsername,
   waiting,
   error,
-  running
+  threeFiveEight,
+  shanghai
 };
-var ws2;
+var ws;
 
-// src/render/ru
+// src/render/sh
 var queryParams = [
   ...new URLSearchParams(window.location.search).entries()
 ].reduce((obj, param) => {

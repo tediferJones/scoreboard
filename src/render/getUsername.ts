@@ -1,4 +1,4 @@
-import { getValById, startWebSocket, getTag as t } from '@/lib/utils';
+import { getValById, randStr, startWebSocket, getTag as t } from '@/lib/utils';
 import { ServerMsg } from '@/types';
 
 export default function getUsername(msg: ServerMsg) {
@@ -14,7 +14,7 @@ export default function getUsername(msg: ServerMsg) {
         type: 'text',
         maxLength: '32',
         required: true,
-        value: 'testUser-'// + randStr(5),
+        value: 'testUser-' + randStr(5),
       }),
       t('button', {
         textContent: 'Join Game',

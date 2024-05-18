@@ -2,20 +2,19 @@ import { ServerWebSocket } from 'bun';
 
 export interface SocketData {
   username: string,
-  score: number,
+  score: number[],
   ready: boolean,
 }
 
 export type ClientSocket = ServerWebSocket<SocketData>
 
-export type GameTypes = '3-5-8' | 'shanghai'
+export type GameTypes = 'threeFiveEight' | 'shanghai'
 
 export interface ActiveGame {
-  status: 'waiting' | 'running' | 'error' | 'home' | 'getUsername'
-  // players: ClientSocket[],
-  players: { [key: string]: ClientSocket }
+  status: 'home' | 'getUsername' | 'waiting' | 'error' | GameTypes,
+  players: { [key: string]: ClientSocket },
   gameType: GameTypes,
-  gameInfo: GameInfo
+  gameInfo: GameInfo,
   gameCode: string,
   errorMsg?: string,
 }
@@ -36,7 +35,7 @@ export interface StrObj {
 }
 
 export interface ClientMsg extends StrObj {
-  action: 'start' | 'join' | 'ready',
+  action: 'start' | 'join' | 'ready' | 'score',
   username: string,
   gameType?: GameTypes,
   gameCode?: string,

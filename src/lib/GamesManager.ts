@@ -6,7 +6,6 @@ import {
   GameTypes,
   ServerMsg
 } from '@/types';
-import { randStr } from './utils';
 
 export default class GamesManager {
   activeGames: { [key: string]: ActiveGame }
@@ -16,7 +15,7 @@ export default class GamesManager {
   constructor() {
     this.activeGames = {};
     this.gameTypes = {
-      '3-5-8': {
+      'threeFiveEight': {
         minPlayers: 3,
         maxPlayers: 3,
       },
@@ -45,7 +44,6 @@ export default class GamesManager {
       join: (ws, msg) => {
         if (!msg.gameCode) throw Error('gameCode is required to join a game')
         const { gameCode } = msg;
-        // const userId = randStr(32);
         const userId = Bun.hash(msg.username).toString();
         const currentGame = this.activeGames[gameCode];
         if (currentGame.players[userId]) {
@@ -59,15 +57,6 @@ export default class GamesManager {
           }
         }
 
-        // if (this.activeGames[gameCode].players.some(player => player.data.username === msg.username)) {
-        //   return { 
-        //     ...this.activeGames[gameCode],
-        //     players: this.activeGames[gameCode].players.map(ws => ws.data),
-        //     status: 'error',
-        //     errorMsg: 'Username already exists'
-        //   }
-        // }
-
         this.setUserData(ws, msg);
         this.activeGames[gameCode].players[userId] = ws;
         return this.getResMsg(msg.gameCode, userId);
@@ -78,11 +67,20 @@ export default class GamesManager {
         if (currentGame?.players[msg.userId]) {
           currentGame.players[msg.userId].data.ready = !currentGame.players[msg.userId].data.ready
         }
-          // currentGame.players.some(player => {
-          //   if (player === ws) {
-          //     player.data.ready = !player.data.ready
-          //   }
-          // })
+
+        const playerKeys = Object.keys(currentGame.players);
+        const allReady = playerKeys.every(key => currentGame.players[key].data.ready)
+        const { minPlayers, maxPlayers } = currentGame.gameInfo;
+        if (allReady && minPlayers <= playerKeys.length && playerKeys.length <= maxPlayers) {
+          currentGame.status = currentGame.gameType;
+        }
+        
+        return this.getResMsg(msg.gameCode, msg.userId)
+      },
+      score: (ws, msg) => {
+        if (!msg.gameCode) throw Error('gameCode is required')
+        console.log('score message:', msg)
+        if (msg.score) this.activeGames[msg.gameCode].players[msg.userId].data.score.push(Number(msg.score) || 0)
         return this.getResMsg(msg.gameCode, msg.userId)
       }
     }
@@ -91,32 +89,18 @@ export default class GamesManager {
   setUserData(ws: ClientSocket, msg: ClientMsg) {
     ws.data = {
       username: msg.username,
-      score: 0,
+      score: [],
       ready: false,
     }
   }
 
   getResMsg(gameCode: string, userId: string) {
-    console.log(gameCode, '\nAll Games:', this.activeGames)
     const currentGame = this.activeGames[gameCode]
     return {
       ...this.activeGames[gameCode],
-      // players: this.activeGames[gameCode].players.map(ws => ws.data)
       players: Object.keys(this.activeGames[gameCode].players).map(key => currentGame.players[key]?.data),
       userId,
       username: currentGame.players[userId].data.username
     }
-  }
-
-  sendRes(res: ServerMsg) {
-    // const msg = JSON.stringify(res);
-    const players = this.activeGames[res.gameCode].players;
-    Object.keys(players).forEach(key => {
-      players[key].send(JSON.stringify({
-        ...res,
-        username: players[key].data.username,
-        userId: key,
-      }))
-    })
   }
 }

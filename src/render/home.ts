@@ -2,7 +2,8 @@ import {
   getTag as t,
   getValById,
   startWebSocket,
-  validateInputs
+  validateInputs,
+  randStr
 } from '@/lib/utils';
 
 export default function home() {
@@ -15,12 +16,12 @@ export default function home() {
       type: 'text',
       maxLength: '32',
       required: true,
-      value: 'testUser-'// + randStr(5),
+      value: 'testUser-' + randStr(5),
     }),
     t('hr', { className: 'col-span-3' }),
     t('label', { textContent: 'Game Type:', for: 'gameType' }),
     t('select', { id: 'gameType', value: '' }, [
-      t('option', { textContent: '3-5-8', value: '3-5-8' }),
+      t('option', { textContent: '3-5-8', value: 'threeFiveEight' }),
       t('option', { textContent: 'Shanghai', value: 'shanghai' }),
     ]),
     t('button', {

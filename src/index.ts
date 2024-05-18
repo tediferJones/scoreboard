@@ -26,6 +26,12 @@ const server = Bun.serve({
     console.log(req.url)
 
     if (server.upgrade(req)) return
+    
+    // If gamecode not found, redirect to home page
+    const gameCode = new URL(req.url).searchParams.get('gameCode');
+    if (gameCode && !gm.activeGames[gameCode]) {
+      return new Response(null, { status: 302, headers: { location: '/' } })
+    }
 
     return new Response(
       match ? Bun.file(match.filePath) : 'Page not found'
@@ -44,20 +50,18 @@ const server = Bun.serve({
       const res = gm.handler[msg.action](ws, msg)
       console.log(gm.activeGames)
 
-      // res.status === 'error' ? ws.send(JSON.stringify(res)) :
-      //   gm.activeGames[msg.gameCode].players.forEach(socket => socket.send(JSON.stringify(res)))
       if (res.status === 'error') {
         ws.send(JSON.stringify(res));
         ws.close();
       } else {
-        // gm.activeGames[msg.gameCode].players
-        //   .forEach(socket => socket.send(JSON.stringify(res)))
-        // const dataRes = JSON.stringify(res)
-        // Object.keys(gm.activeGames[msg.gameCode].players).forEach(key => {
-        //   if (!msg.gameCode) throw Error('no gamecode at index.ts')
-        //   gm.activeGames[msg.gameCode].players[key].send(dataRes)
-        // })
-        gm.sendRes(res)
+        const players = gm.activeGames[res.gameCode].players;
+        Object.keys(players).forEach(key => {
+          players[key].send(JSON.stringify({
+            ...res,
+            username: players[key].data.username,
+            userId: key,
+          }))
+        })
       }
 
     },
