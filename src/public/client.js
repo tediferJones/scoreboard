@@ -121,17 +121,28 @@ function error(msg) {
 
 // src/render/shanghai.tsght.ts
 function threeFiveEight(msg) {
-  const roundCount = msg.players[0].score.length;
+  const currentPlayer = msg.players.find((player) => player.username === msg.username);
   return getTag("div", { className: "showOutline flex flex-col gap-4 items-center w-4/5 mx-auto" }, [
     getTag("h1", { textContent: "Playing:" + msg.gameType }),
-    getTag("table", { className: "w-4/5" }, [
+    getTag("a", {
+      textContent: "View Rules",
+      href: msg.gameInfo.rules,
+      className: "underline"
+    }),
+    getTag("p", { textContent: `Current Round: ${msg.currentRound}` }),
+    getTag("table", { className: "w-11/12" }, [
       getTag("tr", {}, [
         getTag("th", { textContent: "Round #", className: "border" }),
         ...msg.players.map((player) => {
-          return getTag("th", { textContent: player.username, className: "border" });
+          return getTag("th", { className: "border px-4" }, [
+            getTag("div", { className: "flex" }, [
+              getTag("p", { textContent: player.username, className: "text-center flex-1" }),
+              getTag("div", { className: `my-auto rounded-full h-4 w-4 ${player.isConnected ? "bg-green-500" : "bg-red-500"}` })
+            ])
+          ]);
         })
       ]),
-      ...msg.players[0].score.map((_, i) => {
+      ...[...Array(msg.currentRound - 1).keys()].map((i) => {
         return getTag("tr", {}, [
           getTag("td", { textContent: `Round ${i + 1}`, className: "border text-center font-semibold" }),
           ...msg.players.map((player) => {
@@ -146,13 +157,13 @@ function threeFiveEight(msg) {
         getTag("td", { textContent: "Total", className: "border text-center font-semibold" }),
         ...msg.players.map((player) => {
           return getTag("td", {
-            textContent: player.score.reduce((total, round) => total += round, 0),
+            textContent: player.score.slice(0, msg.currentRound - 1).reduce((total, round) => total += round, 0),
             className: "border text-center font-semibold"
           });
         })
       ])
     ]),
-    getTag("div", { className: "flex flew-wrap gap-4" }, [
+    currentPlayer && currentPlayer.score.length === msg.currentRound ? getTag("p", { textContent: "Waiting for other players to add their score for this round" }) : getTag("div", { className: "flex flew-wrap gap-4" }, [
       getTag("label", { textContent: "Score:", for: "score" }),
       getTag("input", { type: "number", id: "score", value: "0" }),
       getTag("button", { textContent: "Submit", onclick: () => {

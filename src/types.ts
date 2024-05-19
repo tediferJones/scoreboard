@@ -4,6 +4,8 @@ export interface SocketData {
   username: string,
   score: number[],
   ready: boolean,
+  gameCode: string,
+  isConnected: boolean,
 }
 
 export type ClientSocket = ServerWebSocket<SocketData>
@@ -17,11 +19,14 @@ export interface ActiveGame {
   gameInfo: GameInfo,
   gameCode: string,
   errorMsg?: string,
+  currentRound: number,
 }
 
 export interface GameInfo {
   minPlayers: number,
   maxPlayers: number,
+  rules: string,
+  maxRound: number,
 }
 
 export interface ServerMsg extends Omit<ActiveGame, 'players'> {
