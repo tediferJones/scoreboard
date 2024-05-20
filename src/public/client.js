@@ -88,22 +88,54 @@ function waiting(msg) {
   const requiredPlayers = minPlayers === maxPlayers ? minPlayers : `${minPlayers} - ${maxPlayers}`;
   setQueryParam({ gameCode: msg.gameCode });
   const joinUrl = window.location.href;
+  const orderedPlayers = msg.players.reduce((ordered, playerData) => {
+    ordered[playerData.position - 1] = playerData;
+    return ordered;
+  }, []);
+  console.log("Ordered players:", orderedPlayers);
   return getTag("div", { className: "showOutline flex flex-col gap-4 col-span-3 items-center" }, [
     getTag("h1", { textContent: "Waiting...", className: "text-xl" }),
     getTag("h1", { textContent: `${msg.gameType} requires ${requiredPlayers} players` }),
     getTag("h1", { textContent: "Game Code:", className: "flex flex-wrap gap-2" }, [
       getTag("a", { textContent: msg.gameCode, href: joinUrl, className: "underline" })
     ]),
-    ...msg.players.map((player) => getTag("div", { className: "flex gap-4 w-full" }, [
+    ...orderedPlayers.map((player) => getTag("div", { className: `showOutline flex gap-4 w-full ${player.username !== msg.username ? "" : "bg-gray-100"}` }, [
       getTag("p", { textContent: player.username, className: "text-center my-auto flex-1" }),
+      getTag("div", { className: "flex flex-col" }, player.username !== msg.username ? [] : [
+        getTag("button", {
+          textContent: "\u21A5",
+          className: "py-0 bg-transparent border-2 rounded-b-none",
+          onclick: player.username !== msg.username ? undefined : () => {
+            sendMsg({
+              action: "position",
+              gameCode: msg.gameCode,
+              username: player.username,
+              userId: msg.userId,
+              position: -1
+            });
+          }
+        }),
+        getTag("button", {
+          textContent: "\u21A7",
+          className: "py-0 bg-transparent border-2 rounded-t-none",
+          onclick: player.username !== msg.username ? undefined : () => {
+            sendMsg({
+              action: "position",
+              gameCode: msg.gameCode,
+              username: player.username,
+              userId: msg.userId,
+              position: 1
+            });
+          }
+        })
+      ]),
       getTag("button", {
         textContent: player.ready ? "\u2713" : "\u2718",
         className: `text-xl ${player.ready ? "bg-green-500" : "bg-red-500"}`,
         onclick: player.username !== msg.username ? undefined : (e) => {
-          const gameCode = new URL(window.location.href).searchParams.get("gameCode");
           sendMsg({
             action: "ready",
-            gameCode: gameCode || undefined,
+            gameCode: msg.gameCode,
             username: player.username,
             userId: msg.userId
           });
@@ -122,6 +154,10 @@ function error(msg) {
 // src/render/shanghai.tsght.ts
 function threeFiveEight(msg) {
   const currentPlayer = msg.players.find((player) => player.username === msg.username);
+  const orderedPlayers = msg.players.reduce((ordered, playerData) => {
+    ordered[playerData.position - 1] = playerData;
+    return ordered;
+  }, []);
   return getTag("div", { className: "showOutline flex flex-col gap-4 items-center w-4/5 mx-auto" }, [
     getTag("h1", { textContent: "Playing:" + msg.gameType }),
     getTag("a", {
@@ -133,8 +169,8 @@ function threeFiveEight(msg) {
     getTag("table", { className: "w-11/12" }, [
       getTag("tr", {}, [
         getTag("th", { textContent: "Round #", className: "border" }),
-        ...msg.players.map((player) => {
-          return getTag("th", { className: "border px-4" }, [
+        ...orderedPlayers.map((player) => {
+          return getTag("th", { className: `border px-4 ${msg.username !== player.username ? "" : "bg-gray-100"}` }, [
             getTag("div", { className: "flex" }, [
               getTag("p", { textContent: player.username, className: "text-center flex-1" }),
               getTag("div", { className: `my-auto rounded-full h-4 w-4 ${player.isConnected ? "bg-green-500" : "bg-red-500"}` })
@@ -145,20 +181,20 @@ function threeFiveEight(msg) {
       ...[...Array(msg.currentRound - 1).keys()].map((i) => {
         return getTag("tr", {}, [
           getTag("td", { textContent: `Round ${i + 1}`, className: "border text-center font-semibold" }),
-          ...msg.players.map((player) => {
+          ...orderedPlayers.map((player) => {
             return getTag("td", {
               textContent: player.score[i] !== undefined ? player.score[i] : "X",
-              className: "border text-center"
+              className: `border text-center ${msg.username !== player.username ? "" : "bg-gray-100"}`
             });
           })
         ]);
       }),
       getTag("tr", {}, [
         getTag("td", { textContent: "Total", className: "border text-center font-semibold" }),
-        ...msg.players.map((player) => {
+        ...orderedPlayers.map((player) => {
           return getTag("td", {
             textContent: player.score.slice(0, msg.currentRound - 1).reduce((total, round) => total += round, 0),
-            className: "border text-center font-semibold"
+            className: `border text-center font-semibold ${msg.username !== player.username ? "" : "bg-gray-100"}`
           });
         })
       ])

@@ -35,19 +35,30 @@ const gm = new GamesManager()
 const server = Bun.serve<SocketData>({
   fetch(req, server) {
     const match = router.match(req.url)
+    const gameCode = new URL(req.url).searchParams.get('gameCode');
     console.log(req.url)
 
-    if (server.upgrade(req)) return
-    
-    // If gamecode not found, redirect to home page
-    const gameCode = new URL(req.url).searchParams.get('gameCode');
-    if (gameCode && !gm.activeGames[gameCode]) {
+    if (server.upgrade(req)) {
+      return
+    } else if (gameCode && !gm.activeGames[gameCode]) {
       return new Response(null, { status: 302, headers: { location: '/' } })
+    } else if (!match) {
+      return new Response('Page not found', { status: 404 })
+    } else {
+      return new Response(Bun.file(match.filePath))
     }
 
-    return new Response(
-      match ? Bun.file(match.filePath) : 'Page not found'
-    );
+    // if (server.upgrade(req)) return
+    // 
+    // // If gamecode not found, redirect to home page
+    // const gameCode = new URL(req.url).searchParams.get('gameCode');
+    // if (gameCode && !gm.activeGames[gameCode]) {
+    //   return new Response(null, { status: 302, headers: { location: '/' } })
+    // }
+
+    // return new Response(
+    //   match ? Bun.file(match.filePath) : 'Page not found'
+    // );
   },
 
   error() {

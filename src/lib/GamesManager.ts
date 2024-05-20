@@ -20,12 +20,18 @@ export default class GamesManager {
         maxPlayers: 3,
         rules: 'https://gamerules.com/rules/sergeant-major/',
         maxRound: 18,
+        rotation: [],
+        extraData: {
+          trumpOpts: ['spades', 'hearts', 'clubs', 'diamonds', 'high', 'low'],
+          chosen: [],
+        }
       },
       'shanghai': {
         minPlayers: 2,
         maxPlayers: 8,
         rules: 'https://gamerules.com/rules/shanghai-card-game',
         maxRound: 7,
+        rotation: [],
       }
     };
     this.handler = {
@@ -34,7 +40,6 @@ export default class GamesManager {
         const { gameCode } = msg;
         const userId = Bun.hash(msg.username).toString();
 
-        this.setUserData(ws, msg)
         this.activeGames[gameCode] = {
           status: 'waiting',
           players: { [userId]: ws },
@@ -42,8 +47,8 @@ export default class GamesManager {
           gameInfo: this.gameTypes[msg.gameType],
           gameCode: gameCode,
           currentRound: 1,
-          // closedConnections: [],
         }
+        this.setUserData(ws, msg)
         return this.getResMsg(msg.gameCode, userId)
       },
       join: (ws, msg) => {
@@ -69,15 +74,35 @@ export default class GamesManager {
           }
         }
 
-        this.setUserData(ws, msg);
         this.activeGames[gameCode].players[userId] = ws;
+        this.setUserData(ws, msg);
         return this.getResMsg(msg.gameCode, userId);
+      },
+      position: (ws, msg) => {
+        if (!msg.gameCode) throw Error('gameCode is required');
+        if (!msg.position) return this.getResMsg(msg.gameCode, msg.userId);
+        console.log('changing position')
+        const players = this.activeGames[msg.gameCode].players;
+        const currentPos = players[msg.userId].data.position;
+        const newPos = currentPos + msg.position;
+        const shiftedUserId = Object.keys(players).find(userId => players[userId].data.position === newPos);
+        console.log(currentPos, newPos, shiftedUserId)
+        if (!shiftedUserId || 0 > newPos || newPos > Object.keys(players).length) {
+          return  this.getResMsg(msg.gameCode, msg.userId);
+        }
+        players[msg.userId].data.position = newPos;
+        players[msg.userId].data.ready = false;
+        players[shiftedUserId].data.position = currentPos;
+        players[shiftedUserId].data.ready = false;
+
+        return this.getResMsg(msg.gameCode, msg.userId);
       },
       ready: (ws, msg) => {
         if (!msg.gameCode) throw Error('gameCode is required')
         const currentGame = this.activeGames[msg.gameCode];
+        // const rotationIndex = msg.position - 1
         if (currentGame?.players[msg.userId]) {
-          currentGame.players[msg.userId].data.ready = !currentGame.players[msg.userId].data.ready
+          currentGame.players[msg.userId].data.ready = !currentGame.players[msg.userId].data.ready;
         }
 
         const playerKeys = Object.keys(currentGame.players);
@@ -110,12 +135,14 @@ export default class GamesManager {
 
   setUserData(ws: ClientSocket, msg: ClientMsg) {
     if (!msg.gameCode) throw Error('gameCode is required for websocket user data')
+    console.log(this.activeGames[msg.gameCode])
     ws.data = {
       username: msg.username,
       score: [],
       ready: false,
       gameCode: msg.gameCode,
       isConnected: true,
+      position: Object.keys(this.activeGames[msg.gameCode].players).length,
     }
   }
 
