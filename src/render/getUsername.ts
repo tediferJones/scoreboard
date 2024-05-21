@@ -14,7 +14,7 @@ export default function getUsername(msg: ServerMsg) {
         type: 'text',
         maxLength: '32',
         required: true,
-        value: 'testUser-' + randStr(5),
+        value: /*'testUser-' + */randStr(8),
       }),
       t('button', {
         textContent: 'Join Game',

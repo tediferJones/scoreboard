@@ -9,7 +9,7 @@ function home() {
       type: "text",
       maxLength: "32",
       required: true,
-      value: "testUser-" + randStr(5)
+      value: randStr(8)
     }),
     getTag("hr", { className: "col-span-3" }),
     getTag("label", { textContent: "Game Type:", for: "gameType" }),
@@ -64,7 +64,7 @@ function getUsername(msg) {
         type: "text",
         maxLength: "32",
         required: true,
-        value: "testUser-" + randStr(5)
+        value: randStr(8)
       }),
       getTag("button", {
         textContent: "Join Game",
@@ -158,7 +158,14 @@ function threeFiveEight(msg) {
     ordered[playerData.position - 1] = playerData;
     return ordered;
   }, []);
-  return getTag("div", { className: "showOutline flex flex-col gap-4 items-center w-4/5 mx-auto" }, [
+  const handCount = [8, 5, 3];
+  const offset = (msg.currentRound - 1) % 3;
+  const currentRoundOrder = orderedPlayers.slice(offset).concat(orderedPlayers.slice(0, offset));
+  const needToPickTrump = msg.players.map((player) => player.chosenTrumps.length).reduce((total, count) => total + count) < msg.currentRound;
+  console.log("need to pick trump?:", needToPickTrump);
+  if (!msg.gameInfo.extraData?.trumpOpts)
+    throw Error("cant find trump options");
+  return getTag("div", { className: "showOutline flex flex-col gap-4 items-center w-11/12 sm:w-4/5 mx-auto" }, [
     getTag("h1", { textContent: "Playing:" + msg.gameType }),
     getTag("a", {
       textContent: "View Rules",
@@ -166,13 +173,33 @@ function threeFiveEight(msg) {
       className: "underline"
     }),
     getTag("p", { textContent: `Current Round: ${msg.currentRound}` }),
-    getTag("table", { className: "w-11/12" }, [
+    getTag("div", { className: "flex flex-col gap-4" }, currentRoundOrder.map((player, i) => {
+      return getTag("div", { textContent: `${handCount[i]}: ${player.username}` });
+    })),
+    getTag("table", { className: "w-full" }, [
+      getTag("tr", {}, [
+        getTag("th", { className: "w-1/3" }),
+        ...msg.gameInfo.extraData?.trumpOpts.map((suit) => getTag("th", { textContent: suit, className: "text-2xl" })) || []
+      ]),
+      ...orderedPlayers.map((player) => {
+        return getTag("tr", { className: msg.username !== player.username ? "" : "bg-gray-100" }, [
+          getTag("td", { textContent: player.username, className: "p-1 text-center truncate max-w-0" }),
+          ...msg.gameInfo.extraData?.trumpOpts.map((suit) => {
+            return getTag("td", {
+              textContent: "\u2718",
+              className: `text-center text-red-500 px-2 ${player.chosenTrumps.includes(suit) ? "" : "text-transparent"}`
+            });
+          }) || []
+        ]);
+      })
+    ]),
+    getTag("table", { className: "w-full" }, [
       getTag("tr", {}, [
         getTag("th", { textContent: "Round #", className: "border" }),
         ...orderedPlayers.map((player) => {
           return getTag("th", { className: `border px-4 ${msg.username !== player.username ? "" : "bg-gray-100"}` }, [
-            getTag("div", { className: "flex" }, [
-              getTag("p", { textContent: player.username, className: "text-center flex-1" }),
+            getTag("div", { className: "flex sm:flex-row flex-col justify-center items-center" }, [
+              getTag("p", { textContent: player.username, className: "text-center flex-1 break-all" }),
               getTag("div", { className: `my-auto rounded-full h-4 w-4 ${player.isConnected ? "bg-green-500" : "bg-red-500"}` })
             ])
           ]);
@@ -199,7 +226,25 @@ function threeFiveEight(msg) {
         })
       ])
     ]),
-    currentPlayer && currentPlayer.score.length === msg.currentRound ? getTag("p", { textContent: "Waiting for other players to add their score for this round" }) : getTag("div", { className: "flex flew-wrap gap-4" }, [
+    needToPickTrump && currentRoundOrder[0].username === msg.username ? getTag("div", { className: "grid grid-cols-2 gap-4" }, [
+      getTag("div", { textContent: "Choose trump suit for this round", className: "col-span-2" }),
+      ...msg.gameInfo.extraData?.trumpOpts.map((suit) => {
+        return getTag("button", {
+          textContent: suit,
+          disabled: currentPlayer?.chosenTrumps.includes(suit),
+          className: `text-3xl ${currentPlayer?.chosenTrumps.includes(suit) ? "bg-gray-400" : ""}`,
+          onclick: () => {
+            sendMsg({
+              action: "trump",
+              suit,
+              username: msg.username,
+              userId: msg.userId,
+              gameCode: msg.gameCode
+            });
+          }
+        });
+      })
+    ]) : needToPickTrump && currentRoundOrder[0].username !== msg.username ? getTag("div", { textContent: "Waiting for trump to be chosen" }) : currentPlayer && currentPlayer.score.length === msg.currentRound ? getTag("p", { textContent: "Waiting for other players to add their score for this round" }) : getTag("div", { className: "flex flew-wrap gap-4" }, [
       getTag("label", { textContent: "Score:", for: "score" }),
       getTag("input", { type: "number", id: "score", value: "0" }),
       getTag("button", { textContent: "Submit", onclick: () => {
@@ -212,8 +257,7 @@ function threeFiveEight(msg) {
           gameCode: msg.gameCode
         });
       } })
-    ]),
-    getTag("div", { textContent: JSON.stringify(msg) })
+    ])
   ]);
 }
 

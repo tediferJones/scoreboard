@@ -7,6 +7,7 @@ export interface SocketData {
   gameCode: string,
   isConnected: boolean,
   position: number,
+  chosenTrumps: string[],
 }
 
 export type ClientSocket = ServerWebSocket<SocketData>
@@ -29,7 +30,9 @@ export interface GameInfo {
   rules: string,
   maxRound: number,
   rotation: string[],
-  extraData?: { [key: string]: any },
+  extraData?: {
+    trumpOpts: string[]
+  },
 }
 
 export interface ServerMsg extends Omit<ActiveGame, 'players'> {
@@ -44,12 +47,13 @@ export interface StrObj {
 }
 
 export interface ClientMsg extends StrObj {
-  action: 'start' | 'join' | 'position' | 'ready' | 'score',
+  action: 'start' | 'join' | 'position' | 'ready' | 'score' | 'trump',
   username: string,
   gameType?: GameTypes,
   gameCode?: string,
   userId: string,
   position?: 1 | -1,
+  suit?: string,
 }
 
 export type RequireProp<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;

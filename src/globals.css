@@ -26,3 +26,15 @@ label {
   @apply text-center;
   @apply my-auto;
 }
+
+td {
+  @apply border;
+  /*
+  @apply px-4;
+  @apply py-2;
+  */
+}
+
+th {
+  @apply border;
+}

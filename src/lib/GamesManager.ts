@@ -22,8 +22,8 @@ export default class GamesManager {
         maxRound: 18,
         rotation: [],
         extraData: {
-          trumpOpts: ['spades', 'hearts', 'clubs', 'diamonds', 'high', 'low'],
-          chosen: [],
+          // trumpOpts: ['spades', 'hearts', 'clubs', 'diamonds', 'high', 'low'],
+          trumpOpts: ['♦', '♣', '♥', '♠', '⇑', '⇓'],
         }
       },
       'shanghai': {
@@ -129,6 +129,13 @@ export default class GamesManager {
           if (roundIsOver) currentGame.currentRound += 1;
         }
         return this.getResMsg(msg.gameCode, msg.userId)
+      },
+      trump: (ws, msg) => {
+        if (!msg.gameCode) throw Error('gameCode is required')
+        if (msg.suit) {
+          ws.data.chosenTrumps.push(msg.suit)
+        }
+        return this.getResMsg(msg.gameCode, msg.userId)
       }
     }
   }
@@ -143,6 +150,7 @@ export default class GamesManager {
       gameCode: msg.gameCode,
       isConnected: true,
       position: Object.keys(this.activeGames[msg.gameCode].players).length,
+      chosenTrumps: [],
     }
   }
 
