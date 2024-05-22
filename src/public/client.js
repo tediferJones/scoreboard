@@ -7,7 +7,7 @@ function home() {
       className: "col-span-2",
       id: "username",
       type: "text",
-      maxLength: "32",
+      maxLength: "8",
       required: true,
       value: randStr(8)
     }),
@@ -62,7 +62,7 @@ function getUsername(msg) {
         className: "flex-1",
         id: "username",
         type: "text",
-        maxLength: "32",
+        maxLength: "8",
         required: true,
         value: randStr(8)
       }),
@@ -165,98 +165,105 @@ function threeFiveEight(msg) {
   console.log("need to pick trump?:", needToPickTrump);
   if (!msg.gameInfo.extraData?.trumpOpts)
     throw Error("cant find trump options");
-  return getTag("div", { className: "showOutline flex flex-col gap-4 items-center w-11/12 sm:w-4/5 mx-auto" }, [
-    getTag("h1", { textContent: "Playing:" + msg.gameType }),
-    getTag("a", {
-      textContent: "View Rules",
-      href: msg.gameInfo.rules,
-      className: "underline"
-    }),
-    getTag("p", { textContent: `Current Round: ${msg.currentRound}` }),
-    getTag("div", { className: "flex flex-col gap-4" }, currentRoundOrder.map((player, i) => {
+  return getTag("div", { className: "showOutline flex flex-col gap-4 items-center w-11/12 sm:w-4/5 mx-auto my-8" }, [
+    getTag("div", { className: "flex flex-wrap gap-4 justify-center showOutline" }, [
+      getTag("p", { textContent: `Current Round: ${msg.currentRound}` }),
+      getTag("h1", { textContent: `Game: ${fromCamelCase(msg.gameType)}` }),
+      getTag("a", {
+        textContent: "View Rules",
+        href: msg.gameInfo.rules,
+        className: "underline"
+      })
+    ]),
+    getTag("div", { className: "flex flex-wrap gap-4 justify-center showOutline" }, currentRoundOrder.map((player, i) => {
       return getTag("div", { textContent: `${handCount[i]}: ${player.username}` });
     })),
-    getTag("table", { className: "w-full" }, [
+    getTag("table", { className: "w-full table-auto" }, [
       getTag("tr", {}, [
-        getTag("th", { className: "w-1/3" }),
-        ...msg.gameInfo.extraData?.trumpOpts.map((suit) => getTag("th", { textContent: suit, className: "text-2xl" })) || []
+        getTag("td"),
+        ...msg.gameInfo.extraData?.trumpOpts.map((suit) => getTag("td", { textContent: suit })) || []
       ]),
       ...orderedPlayers.map((player) => {
         return getTag("tr", { className: msg.username !== player.username ? "" : "bg-gray-100" }, [
-          getTag("td", { textContent: player.username, className: "p-1 text-center truncate max-w-0" }),
+          getTag("td", { textContent: player.username, className: "text-sm" }),
           ...msg.gameInfo.extraData?.trumpOpts.map((suit) => {
             return getTag("td", {
               textContent: "\u2718",
-              className: `text-center text-red-500 px-2 ${player.chosenTrumps.includes(suit) ? "" : "text-transparent"}`
+              className: `text-red-500 px-0 ${player.chosenTrumps.includes(suit) ? "" : "text-transparent"}`
             });
           }) || []
         ]);
       })
     ]),
-    getTag("table", { className: "w-full" }, [
-      getTag("tr", {}, [
-        getTag("th", { textContent: "Round #", className: "border" }),
-        ...orderedPlayers.map((player) => {
-          return getTag("th", { className: `border px-4 ${msg.username !== player.username ? "" : "bg-gray-100"}` }, [
-            getTag("div", { className: "flex sm:flex-row flex-col justify-center items-center" }, [
-              getTag("p", { textContent: player.username, className: "text-center flex-1 break-all" }),
-              getTag("div", { className: `my-auto rounded-full h-4 w-4 ${player.isConnected ? "bg-green-500" : "bg-red-500"}` })
-            ])
-          ]);
-        })
-      ]),
-      ...[...Array(msg.currentRound - 1).keys()].map((i) => {
-        return getTag("tr", {}, [
-          getTag("td", { textContent: `Round ${i + 1}`, className: "border text-center font-semibold" }),
+    getTag("div", { className: "w-full overflow-x-auto" }, [
+      getTag("table", { className: "w-full table-auto" }, [
+        getTag("tr", {}, [
+          getTag("td", { textContent: "" }),
           ...orderedPlayers.map((player) => {
             return getTag("td", {
-              textContent: player.score[i] !== undefined ? player.score[i] : "X",
-              className: `border text-center ${msg.username !== player.username ? "" : "bg-gray-100"}`
+              textContent: player.username,
+              className: `text-sm ${msg.username !== player.username ? "" : "bg-gray-100"} ${player.isConnected ? "" : "text-red-500"}`
+            }, []);
+          })
+        ]),
+        ...[...Array(msg.currentRound).keys()].map((i) => {
+          return getTag("tr", {}, [
+            getTag("td", { textContent: i + 1, className: "font-semibold w-1/6" }),
+            ...orderedPlayers.map((player) => {
+              return getTag("td", {
+                textContent: player.score[i] !== undefined ? player.score[i] : "X",
+                className: `border text-center ${msg.username !== player.username ? "" : "bg-gray-100"}`
+              });
+            })
+          ]);
+        }),
+        getTag("tr", {}, [
+          getTag("td", { textContent: "Total", className: "font-semibold" }),
+          ...orderedPlayers.map((player) => {
+            return getTag("td", {
+              textContent: player.score.slice(0, msg.currentRound - 1).reduce((total, round) => total += round, 0),
+              className: `font-semibold ${msg.username !== player.username ? "" : "bg-gray-100"}`
             });
           })
-        ]);
-      }),
-      getTag("tr", {}, [
-        getTag("td", { textContent: "Total", className: "border text-center font-semibold" }),
-        ...orderedPlayers.map((player) => {
-          return getTag("td", {
-            textContent: player.score.slice(0, msg.currentRound - 1).reduce((total, round) => total += round, 0),
-            className: `border text-center font-semibold ${msg.username !== player.username ? "" : "bg-gray-100"}`
-          });
-        })
+        ])
       ])
     ]),
-    needToPickTrump && currentRoundOrder[0].username === msg.username ? getTag("div", { className: "grid grid-cols-2 gap-4" }, [
-      getTag("div", { textContent: "Choose trump suit for this round", className: "col-span-2" }),
-      ...msg.gameInfo.extraData?.trumpOpts.map((suit) => {
-        return getTag("button", {
-          textContent: suit,
-          disabled: currentPlayer?.chosenTrumps.includes(suit),
-          className: `text-3xl ${currentPlayer?.chosenTrumps.includes(suit) ? "bg-gray-400" : ""}`,
-          onclick: () => {
-            sendMsg({
-              action: "trump",
-              suit,
-              username: msg.username,
-              userId: msg.userId,
-              gameCode: msg.gameCode
-            });
-          }
-        });
-      })
-    ]) : needToPickTrump && currentRoundOrder[0].username !== msg.username ? getTag("div", { textContent: "Waiting for trump to be chosen" }) : currentPlayer && currentPlayer.score.length === msg.currentRound ? getTag("p", { textContent: "Waiting for other players to add their score for this round" }) : getTag("div", { className: "flex flew-wrap gap-4" }, [
-      getTag("label", { textContent: "Score:", for: "score" }),
-      getTag("input", { type: "number", id: "score", value: "0" }),
-      getTag("button", { textContent: "Submit", onclick: () => {
-        console.log("submit score");
-        sendMsg({
-          action: "score",
-          score: getValById("score"),
-          username: msg.username,
-          userId: msg.userId,
-          gameCode: msg.gameCode
-        });
-      } })
+    getTag("div", { className: "showOutline" }, [
+      needToPickTrump && currentRoundOrder[0].username === msg.username ? getTag("div", { className: "grid grid-cols-2 gap-4" }, [
+        getTag("div", { textContent: "Choose trump suit for this round", className: "col-span-2" }),
+        ...msg.gameInfo.extraData?.trumpOpts.map((suit) => {
+          return getTag("button", {
+            textContent: suit,
+            disabled: currentPlayer?.chosenTrumps.includes(suit),
+            className: `text-3xl ${currentPlayer?.chosenTrumps.includes(suit) ? "bg-gray-400" : ""}`,
+            onclick: () => {
+              sendMsg({
+                action: "trump",
+                suit,
+                username: msg.username,
+                userId: msg.userId,
+                gameCode: msg.gameCode
+              });
+            }
+          });
+        })
+      ]) : needToPickTrump && currentRoundOrder[0].username !== msg.username ? getTag("div", { textContent: "Waiting for trump to be chosen" }) : currentPlayer && currentPlayer.score.length === msg.currentRound ? getTag("p", {
+        textContent: "Waiting for other players to add their score for this round",
+        className: "text-center"
+      }) : getTag("div", { className: "flex gap-4 justify-center" }, [
+        getTag("label", { textContent: "Score:", for: "score", className: "w-1/3" }),
+        getTag("input", { type: "number", id: "score", value: "0", className: "w-1/3" }),
+        getTag("button", { textContent: "Submit", className: "w-1/3", onclick: () => {
+          console.log("submit score");
+          sendMsg({
+            action: "score",
+            score: getValById("score"),
+            username: msg.username,
+            userId: msg.userId,
+            gameCode: msg.gameCode
+          });
+        } })
+      ])
     ])
   ]);
 }
@@ -296,6 +303,15 @@ function setQueryParam(params) {
     url.searchParams.set(key, params[key]);
   });
   window.history.pushState({}, "", url);
+}
+function fromCamelCase(str, isPlural) {
+  return str.split("").reduce((str2, char, i) => {
+    if (i === 0)
+      return char.toUpperCase();
+    if ("A" <= char && char <= "Z")
+      return `${str2} ${char}`;
+    return str2 + char;
+  }, "") + (isPlural ? "s" : "");
 }
 function sendMsg(msg) {
   ws.send(JSON.stringify(msg));

@@ -14,7 +14,7 @@ export default function home() {
       className: 'col-span-2',
       id: 'username',
       type: 'text',
-      maxLength: '32',
+      maxLength: '8',
       required: true,
       value: /*'testUser-' + */randStr(8),
     }),

@@ -29,12 +29,38 @@ label {
 
 td {
   @apply border;
+  @apply text-center;
   /*
+  @apply truncate;
+  @apply max-w-0;
+  @apply p-1;
+  @apply w-full;
   @apply px-4;
   @apply py-2;
   */
 }
 
+/*
 th {
   @apply border;
+}
+*/
+
+th.rotate {
+  /* Something you can count on */
+  height: 140px;
+  white-space: nowrap;
+}
+
+th.rotate > div {
+  transform: 
+    /* Magic Numbers */
+    translate(10px, 51px)
+    /* 45 is really 360 - 45 */
+    rotate(315deg);
+  width: 30px;
+}
+th.rotate > div > span {
+  border-bottom: 1px solid #ccc;
+  padding: 5px 10px;
 }

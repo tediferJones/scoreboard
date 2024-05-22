@@ -47,6 +47,15 @@ export function setQueryParam(params: { [key: string]: string }) {
   window.history.pushState({}, '', url);
 }
 
+export function fromCamelCase(str: string, isPlural?: boolean) {
+  // if (camelCaseOverride[str]) return camelCaseOverride[str]
+  return str.split('').reduce((str, char, i) => {
+    if (i === 0) return char.toUpperCase();
+    if ('A' <= char && char <= 'Z') return `${str} ${char}`;
+    return str + char;
+  }, '') + (isPlural ? 's' : '')
+}
+
 export const renderOpts: { [key in ServerMsg['status']]: (msg: ServerMsg) => Node } = {
   home,
   getUsername,

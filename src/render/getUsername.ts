@@ -12,7 +12,7 @@ export default function getUsername(msg: ServerMsg) {
         className: 'flex-1',
         id: 'username',
         type: 'text',
-        maxLength: '32',
+        maxLength: '8',
         required: true,
         value: /*'testUser-' + */randStr(8),
       }),
