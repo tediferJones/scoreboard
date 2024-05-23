@@ -7,7 +7,7 @@ export default function getUsername(msg: ServerMsg) {
     t('p', { textContent: `Game Code: ${gameCode}`, className: 'text-center' }),
     t('p', { className: `text-center text-red-500 ${msg.errorMsg ? 'block' : 'hidden'}`, textContent: msg.errorMsg }),
     t('form', { className: 'flex flex-wrap gap-4' }, [
-      t('label', { textContent: 'Username:', for: 'username' }),
+      t('label', { textContent: 'Username:', htmlFor: 'username' }),
       t('input', {
         className: 'flex-1',
         id: 'username',

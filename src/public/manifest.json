@@ -1,0 +1,15 @@
+{
+  "name": "Scoreboard",
+  "description": "A scoreboard app for card games",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fff",
+  "theme_color": "#fff",
+  "icons": [
+    {
+      "src": "/favicon",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

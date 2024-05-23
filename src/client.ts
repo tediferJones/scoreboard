@@ -14,3 +14,8 @@ console.log(queryParams)
 document.body.append(
   renderOpts[queryParams.gameCode ? 'getUsername' : 'home']({} as ServerMsg)
 )
+
+// Set initial theme
+document.documentElement.classList.add(
+  window.localStorage.getItem('theme') || 'light'
+);

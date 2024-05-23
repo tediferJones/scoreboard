@@ -34,12 +34,12 @@ export default function threeFiveEight(msg: ServerMsg) {
     t('table', { className: 'w-full table-auto' }, [
       t('tr', {}, [
         t('td'),
-        ...msg.gameInfo.extraData?.trumpOpts.map(suit => (
+        ...msg.gameInfo.extraData.trumpOpts.map(suit => (
           t('td', { textContent: suit })
-        )) || []
+        ))
       ]),
       ...orderedPlayers.map(player => {
-        return t('tr', { className: msg.username !== player.username ? '' : 'bg-gray-100' }, [
+        return t('tr', { className: msg.username !== player.username ? '' : 'secondary' }, [
           t('td', { textContent: player.username, className: 'text-sm' }),
           ...msg.gameInfo.extraData?.trumpOpts.map(suit => {
             return t('td', {
@@ -57,19 +57,17 @@ export default function threeFiveEight(msg: ServerMsg) {
           ...orderedPlayers.map(player => {
             return t('td', {
               textContent: player.username,
-              className: `text-sm ${msg.username !== player.username ? '' : 'bg-gray-100'} ${player.isConnected ? '' : 'text-red-500'}`
-            }, [
-                // t('div', { className: `inline-block my-auto rounded-full h-4 w-4 ${player.isConnected ? 'bg-green-500' : 'bg-red-500'}` })
-              ])
+              className: `text-sm ${msg.username !== player.username ? '' : 'secondary'} ${player.isConnected ? '' : 'text-red-500'}`
+            })
           })
         ]),
-        ...[...Array(msg.currentRound/* - 1*/).keys()].map(i => {
+        ...[...Array(msg.currentRound).keys()].map(i => {
           return (t('tr', {} , [
             t('td', { textContent: i + 1, className: 'font-semibold w-1/6' }),
             ...orderedPlayers.map(player => {
               return t('td', {
                 textContent: player.score[i] !== undefined ? player.score[i] : 'X',
-                className: `border text-center ${msg.username !== player.username ? '' : 'bg-gray-100'}`
+                className: `border text-center ${msg.username !== player.username ? '' : 'secondary'}`
               })
             })
           ]))
@@ -79,7 +77,7 @@ export default function threeFiveEight(msg: ServerMsg) {
           ...orderedPlayers.map(player => {
             return t('td', {
               textContent: player.score.slice(0, msg.currentRound - 1).reduce((total, round) => total += round, 0),
-              className: `font-semibold ${msg.username !== player.username ? '' : 'bg-gray-100'}`
+              className: `font-semibold ${msg.username !== player.username ? '' : 'secondary'}`
             })
           })
         ])
@@ -93,14 +91,14 @@ export default function threeFiveEight(msg: ServerMsg) {
             return t('button', {
               textContent: suit,
               disabled: currentPlayer?.chosenTrumps.includes(suit),
-              className: `text-3xl ${currentPlayer?.chosenTrumps.includes(suit) ? 'bg-gray-400' : ''}`,
+              className: `text-3xl ${currentPlayer?.chosenTrumps.includes(suit) ? 'blur-sm' : 'secondary' }`,
               onclick: () => {
                 sendMsg({
                   action: 'trump',
                   suit,
                   username: msg.username,
                   userId: msg.userId,
-                  gameCode: msg.gameCode,
+                  // gameCode: msg.gameCode,
                 })
               }
             })
@@ -114,7 +112,7 @@ export default function threeFiveEight(msg: ServerMsg) {
               className: 'text-center',
             })
             : t('div', { className: 'flex gap-4 justify-center'}, [
-              t('label', { textContent: 'Score:', for: 'score', className: 'w-1/3' }),
+              t('label', { textContent: 'Score:', htmlFor: 'score', className: 'w-1/3' }),
               t('input', { type: 'number', id: 'score', value: '0', className: 'w-1/3' }),
               t('button', { textContent: 'Submit', className: 'w-1/3', onclick: () => {
                 console.log('submit score')
@@ -123,7 +121,7 @@ export default function threeFiveEight(msg: ServerMsg) {
                   score: getValById('score'),
                   username: msg.username,
                   userId: msg.userId,
-                  gameCode: msg.gameCode,
+                  // gameCode: msg.gameCode,
                 })
               }})
             ]),

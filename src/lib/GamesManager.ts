@@ -22,7 +22,6 @@ export default class GamesManager {
         maxRound: 18,
         rotation: [],
         extraData: {
-          // trumpOpts: ['spades', 'hearts', 'clubs', 'diamonds', 'high', 'low'],
           trumpOpts: ['♦', '♣', '♥', '♠', '⇑', '⇓'],
         }
       },
@@ -56,11 +55,16 @@ export default class GamesManager {
         const { gameCode } = msg;
         const userId = Bun.hash(msg.username).toString();
         const currentGame = this.activeGames[gameCode];
+
+        if (this.activeGames[gameCode].closeTimeout) {
+          clearTimeout(this.activeGames[gameCode].closeTimeout);
+        }
+
         if (currentGame.players[userId]) {
           if (!currentGame.players[userId].data.isConnected) {
             currentGame.players[userId].data.isConnected = true;
             ws.data = currentGame.players[userId].data;
-            currentGame.players[userId] = ws
+            currentGame.players[userId] = ws;
             return this.getResMsg(msg.gameCode, userId);
           }
 
@@ -79,27 +83,27 @@ export default class GamesManager {
         return this.getResMsg(msg.gameCode, userId);
       },
       position: (ws, msg) => {
-        if (!msg.gameCode) throw Error('gameCode is required');
-        if (!msg.position) return this.getResMsg(msg.gameCode, msg.userId);
+        // if (!msg.gameCode) throw Error('gameCode is required');
+        if (!msg.position) return this.getResMsg(ws.data.gameCode, msg.userId);
         console.log('changing position')
-        const players = this.activeGames[msg.gameCode].players;
+        const players = this.activeGames[ws.data.gameCode].players;
         const currentPos = players[msg.userId].data.position;
         const newPos = currentPos + msg.position;
         const shiftedUserId = Object.keys(players).find(userId => players[userId].data.position === newPos);
         console.log(currentPos, newPos, shiftedUserId)
         if (!shiftedUserId || 0 > newPos || newPos > Object.keys(players).length) {
-          return  this.getResMsg(msg.gameCode, msg.userId);
+          return  this.getResMsg(ws.data.gameCode, msg.userId);
         }
         players[msg.userId].data.position = newPos;
         players[msg.userId].data.ready = false;
         players[shiftedUserId].data.position = currentPos;
         players[shiftedUserId].data.ready = false;
 
-        return this.getResMsg(msg.gameCode, msg.userId);
+        return this.getResMsg(ws.data.gameCode, msg.userId);
       },
       ready: (ws, msg) => {
-        if (!msg.gameCode) throw Error('gameCode is required')
-        const currentGame = this.activeGames[msg.gameCode];
+        // if (!msg.gameCode) throw Error('gameCode is required')
+        const currentGame = this.activeGames[ws.data.gameCode];
         // const rotationIndex = msg.position - 1
         if (currentGame?.players[msg.userId]) {
           currentGame.players[msg.userId].data.ready = !currentGame.players[msg.userId].data.ready;
@@ -112,12 +116,12 @@ export default class GamesManager {
           currentGame.status = currentGame.gameType;
         }
         
-        return this.getResMsg(msg.gameCode, msg.userId)
+        return this.getResMsg(ws.data.gameCode, msg.userId)
       },
       score: (ws, msg) => {
-        if (!msg.gameCode) throw Error('gameCode is required')
+        // if (!msg.gameCode) throw Error('gameCode is required')
         // what if current game or current player does not exist?
-        const currentGame = this.activeGames[msg.gameCode];
+        const currentGame = this.activeGames[ws.data.gameCode];
         const currentPlayer = currentGame.players[msg.userId].data;
         if (msg.score && currentPlayer.score.length < currentGame.currentRound) {
           currentPlayer.score.push(Number(msg.score) || 0)
@@ -128,14 +132,12 @@ export default class GamesManager {
           ));
           if (roundIsOver) currentGame.currentRound += 1;
         }
-        return this.getResMsg(msg.gameCode, msg.userId)
+        return this.getResMsg(ws.data.gameCode, msg.userId)
       },
       trump: (ws, msg) => {
-        if (!msg.gameCode) throw Error('gameCode is required')
-        if (msg.suit) {
-          ws.data.chosenTrumps.push(msg.suit)
-        }
-        return this.getResMsg(msg.gameCode, msg.userId)
+        // if (!msg.gameCode) throw Error('gameCode is required');
+        if (msg.suit) ws.data.chosenTrumps.push(msg.suit);
+        return this.getResMsg(ws.data.gameCode, msg.userId);
       }
     }
   }

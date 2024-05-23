@@ -1,4 +1,4 @@
-import { getValById, sendMsg, setQueryParam, getTag as t } from '@/lib/utils';
+import { fromCamelCase, sendMsg, setQueryParam, getTag as t } from '@/lib/utils';
 import { ServerMsg, SocketData } from '@/types';
 
 export default function waiting(msg: ServerMsg) {
@@ -14,23 +14,22 @@ export default function waiting(msg: ServerMsg) {
 
   return t('div', { className: 'showOutline flex flex-col gap-4 col-span-3 items-center' }, [
     t('h1', { textContent: 'Waiting...', className: 'text-xl' }),
-    t('h1', { textContent: `${msg.gameType} requires ${requiredPlayers} players` }),
+    t('h1', { textContent: `${fromCamelCase(msg.gameType)} requires ${requiredPlayers} players` }),
     t('h1', { textContent: 'Game Code:', className: 'flex flex-wrap gap-2' }, [
       t('a', { textContent: msg.gameCode, href: joinUrl, className: 'underline' }),
     ]),
-    // ...msg.players.map(player => 
     ...orderedPlayers.map(player => 
-      t('div', { className: `showOutline flex gap-4 w-full ${player.username !== msg.username ? '' : 'bg-gray-100'}` }, [
+      t('div', { className: `showOutline flex gap-4 w-full ${player.username !== msg.username ? '' : 'secondary'}` }, [
         t('p', { textContent: player.username, className: 'text-center my-auto flex-1' }),
         t('div', { className: 'flex flex-col'}, player.username !== msg.username ? [] : [
           t('button', {
             textContent: '↥',
-            className: 'py-0 bg-transparent border-2 rounded-b-none',
+            className: 'py-0 bg-transparent border-2 border-b-0 rounded-b-none',
             // className: 'text-2xl',
             onclick: player.username !== msg.username ? undefined : () => {
               sendMsg({
                 action: 'position',
-                gameCode: msg.gameCode,
+                // gameCode: msg.gameCode,
                 username: player.username,
                 userId: msg.userId,
                 position: -1,
@@ -44,7 +43,7 @@ export default function waiting(msg: ServerMsg) {
             onclick: player.username !== msg.username ? undefined : () => {
               sendMsg({
                 action: 'position',
-                gameCode: msg.gameCode,
+                // gameCode: msg.gameCode,
                 username: player.username,
                 userId: msg.userId,
                 position: 1,
@@ -58,7 +57,7 @@ export default function waiting(msg: ServerMsg) {
           onclick: player.username !== msg.username ? undefined : (e: any) => {
             sendMsg({
               action: 'ready',
-              gameCode: msg.gameCode,
+              // gameCode: msg.gameCode,
               username: player.username,
               userId: msg.userId,
             })

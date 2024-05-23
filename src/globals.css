@@ -2,10 +2,30 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  :root {
+    @apply bg-slate-50;
+  }
+
+  .dark {
+    @apply bg-slate-900;
+    @apply text-white;
+  }
+}
+
 .showOutline {
   @apply border;
   @apply rounded-lg;
   @apply p-4;
+}
+
+.secondary {
+  @apply bg-slate-100;
+  @apply dark:bg-slate-800;
+}
+
+hr {
+  @apply border;
 }
 
 input, select {
@@ -13,13 +33,27 @@ input, select {
   @apply rounded-lg;
   @apply p-2;
   @apply bg-white;
+
+  @apply dark:bg-slate-900;
+  @apply bg-slate-50;
+}
+
+.border {
+  /* Switch these if contrast is too much */
+  @apply border-slate-300;
+  @apply dark:border-slate-600;
 }
 
 button {
-  @apply bg-blue-400;
   @apply px-4;
   @apply py-2;
   @apply rounded-lg;
+  @apply border;
+
+  /*
+  @apply bg-gray-100;
+  @apply dark:bg-gray-800;
+* */
 }
 
 label {

@@ -14,7 +14,10 @@ interface Props extends Partial<{ [key in keyof HTMLElement]: any }> {
   [key: string]: any
 };
 
-export function getTag(type: keyof HTMLElementTagNameMap, props?: Props, children?: HTMLElement[]) {
+// type PropsV2<T> = HTMLElementTagNameMap[T]
+// type SpecificElementType<K extends keyof HTMLElementTagNameMap> = HTMLElementTagNameMap[K];
+
+export function getTag(type: keyof HTMLElementTagNameMap, props?: Props, children?: HTMLElement[]): HTMLElementTagNameMap[typeof type] {
   const node: StrIdxNode = document.createElement(type);
   if (props) Object.keys(props).forEach(propKey => node[propKey] = props[propKey]);
   if (children?.length) node.append(...children);
