@@ -30,9 +30,9 @@ export interface GameInfo {
   maxPlayers: number,
   rules: string,
   maxRound: number,
-  rotation: string[],
   extraData?: {
-    trumpOpts: string[]
+    trumpOpts?: string[],
+    currentTrump?: string,
   },
 }
 
@@ -50,9 +50,9 @@ export interface StrObj {
 export interface ClientMsg extends StrObj {
   action: 'start' | 'join' | 'position' | 'ready' | 'score' | 'trump',
   username: string,
+  userId: string,
   gameType?: GameTypes,
   gameCode?: string,
-  userId: string,
   position?: 1 | -1,
   suit?: string,
 }

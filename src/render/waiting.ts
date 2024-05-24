@@ -4,19 +4,25 @@ import { ServerMsg, SocketData } from '@/types';
 export default function waiting(msg: ServerMsg) {
   const { minPlayers, maxPlayers } = msg.gameInfo;
   const requiredPlayers = minPlayers === maxPlayers ? minPlayers : `${minPlayers} - ${maxPlayers}`;
-  setQueryParam({ gameCode: msg.gameCode })
-  const joinUrl = window.location.href;
   const orderedPlayers = msg.players.reduce((ordered, playerData) => {
     ordered[playerData.position - 1] = playerData;
     return ordered;
   }, [] as SocketData[])
   console.log('Ordered players:', orderedPlayers)
 
+  setQueryParam({ gameCode: msg.gameCode, username: msg.username });
+  const joinUrl = new URL(window.location.href);
+  joinUrl.searchParams.delete('username');
+
   return t('div', { className: 'showOutline flex flex-col gap-4 col-span-3 items-center' }, [
     t('h1', { textContent: 'Waiting...', className: 'text-xl' }),
     t('h1', { textContent: `${fromCamelCase(msg.gameType)} requires ${requiredPlayers} players` }),
     t('h1', { textContent: 'Game Code:', className: 'flex flex-wrap gap-2' }, [
-      t('a', { textContent: msg.gameCode, href: joinUrl, className: 'underline' }),
+      t('a', {
+        textContent: msg.gameCode,
+        href: joinUrl.toString(),
+        className: 'underline'
+      }),
     ]),
     ...orderedPlayers.map(player => 
       t('div', { className: `showOutline flex gap-4 w-full ${player.username !== msg.username ? '' : 'secondary'}` }, [

@@ -1,21 +1,24 @@
-import { renderOpts } from '@/lib/utils';
-import { ServerMsg, StrObj } from '@/types';
+import { renderOpts, startWebSocket } from '@/lib/utils';
+import { ServerMsg } from '@/types';
 
-const queryParams = [
-  ...new URLSearchParams(window.location.search).entries()
-].reduce((obj, param) => {
-  const [key, val] = param;
-  obj[key] = val;
-  return obj;
-}, {} as StrObj)
-console.log(queryParams)
+const url = new URL(window.location.href);
+const gameCode = url.searchParams.get('gameCode');
+const username = url.searchParams.get('username');
 
-// Handle initial page render
-document.body.append(
-  renderOpts[queryParams.gameCode ? 'getUsername' : 'home']({} as ServerMsg)
-)
+if (gameCode && username) {
+  startWebSocket({ action: 'join', username, gameCode });
+} else if (gameCode) {
+  document.body.append(renderOpts.getUsername({} as ServerMsg));
+} else {
+  document.body.append(renderOpts.home({} as ServerMsg));
+}
 
 // Set initial theme
 document.documentElement.classList.add(
   window.localStorage.getItem('theme') || 'light'
 );
+
+// Handle page going into background
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) window.location.reload();
+});

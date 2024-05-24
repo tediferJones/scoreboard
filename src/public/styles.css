@@ -733,6 +733,11 @@ video {
   height: 100%;
 }
 
+.h-min {
+  height: -moz-min-content;
+  height: min-content;
+}
+
 .min-h-4 {
   min-height: 1rem;
 }

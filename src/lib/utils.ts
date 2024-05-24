@@ -51,7 +51,6 @@ export function setQueryParam(params: { [key: string]: string }) {
 }
 
 export function fromCamelCase(str: string, isPlural?: boolean) {
-  // if (camelCaseOverride[str]) return camelCaseOverride[str]
   return str.split('').reduce((str, char, i) => {
     if (i === 0) return char.toUpperCase();
     if ('A' <= char && char <= 'Z') return `${str} ${char}`;
@@ -74,11 +73,10 @@ export function sendMsg(msg: ClientMsg) {
 }
 
 export function startWebSocket(initMsg: { [key: string]: string }) {
-  ws = new WebSocket('ws://localhost:3000');
+  ws = new WebSocket(`${window.location.protocol === 'http:' ? 'ws:' : 'wss:'}//${window.location.host}`)
   ws.onopen = () => {
     console.log('opened', initMsg)
     ws.send(JSON.stringify(initMsg))
-    // sendFunc = ws.send.bind(ws)
   }
 
   ws.onmessage = (ws) => {

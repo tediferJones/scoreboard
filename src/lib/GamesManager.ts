@@ -20,7 +20,6 @@ export default class GamesManager {
         maxPlayers: 3,
         rules: 'https://gamerules.com/rules/sergeant-major/',
         maxRound: 18,
-        rotation: [],
         extraData: {
           trumpOpts: ['♦', '♣', '♥', '♠', '⇑', '⇓'],
         }
@@ -30,7 +29,6 @@ export default class GamesManager {
         maxPlayers: 8,
         rules: 'https://gamerules.com/rules/shanghai-card-game',
         maxRound: 7,
-        rotation: [],
       }
     };
     this.handler = {
@@ -43,7 +41,7 @@ export default class GamesManager {
           status: 'waiting',
           players: { [userId]: ws },
           gameType: msg.gameType,
-          gameInfo: this.gameTypes[msg.gameType],
+          gameInfo: JSON.parse(JSON.stringify(this.gameTypes[msg.gameType])),
           gameCode: gameCode,
           currentRound: 1,
         }
@@ -136,7 +134,12 @@ export default class GamesManager {
       },
       trump: (ws, msg) => {
         // if (!msg.gameCode) throw Error('gameCode is required');
-        if (msg.suit) ws.data.chosenTrumps.push(msg.suit);
+        if (msg.suit) {
+          const gameData = this.activeGames[ws.data.gameCode].gameInfo.extraData
+          if (!gameData) throw Error('cant finds extraData')
+          ws.data.chosenTrumps.push(msg.suit);
+          gameData.currentTrump = msg.suit;
+        }
         return this.getResMsg(ws.data.gameCode, msg.userId);
       }
     }

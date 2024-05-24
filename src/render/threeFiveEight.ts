@@ -31,7 +31,11 @@ export default function threeFiveEight(msg: ServerMsg) {
     t('div', { className: 'flex flex-wrap gap-4 justify-center showOutline'}, currentRoundOrder.map((player, i) => {
       return t('div', { textContent: `${handCount[i]}: ${player.username}` })
     })),
-    t('table', { className: 'w-full table-auto' }, [
+    t('div', { className: 'showOutline flex gap-2 items-center', }, [
+      t('p', { textContent: 'Trump Suit:' }),
+      t('p', { textContent: msg.gameInfo.extraData.currentTrump, className: 'text-2xl' })
+    ]),
+    t('table', { className: 'w-full table-auto text-xl' }, [
       t('tr', {}, [
         t('td'),
         ...msg.gameInfo.extraData.trumpOpts.map(suit => (
@@ -41,7 +45,7 @@ export default function threeFiveEight(msg: ServerMsg) {
       ...orderedPlayers.map(player => {
         return t('tr', { className: msg.username !== player.username ? '' : 'secondary' }, [
           t('td', { textContent: player.username, className: 'text-sm' }),
-          ...msg.gameInfo.extraData?.trumpOpts.map(suit => {
+          ...msg.gameInfo.extraData?.trumpOpts?.map(suit => {
             return t('td', {
               textContent: '✘',
               className: `text-red-500 px-0 ${player.chosenTrumps.includes(suit) ? '' : 'text-transparent'}`,
