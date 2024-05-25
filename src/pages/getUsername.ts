@@ -3,7 +3,7 @@ import { ServerMsg } from '@/types';
 
 export default function getUsername(msg: ServerMsg) {
   const gameCode = new URL(window.location.href).searchParams.get('gameCode')
-  return t('form', { className: 'showOutline p-4 flex flex-col gap-4 w-4/5 mx-auto' }, [
+  return t('form', { className: 'showOutline flex flex-col gap-4' }, [
     t('p', { textContent: `Game Code: ${gameCode}`, className: 'text-center' }),
     t('p', { className: `text-center text-red-500 ${msg.errorMsg ? 'block' : 'hidden'}`, textContent: msg.errorMsg }),
     t('form', { className: 'flex flex-wrap gap-4' }, [
@@ -14,12 +14,12 @@ export default function getUsername(msg: ServerMsg) {
         type: 'text',
         maxLength: '8',
         required: true,
-        value: /*'testUser-' + */randStr(8),
+        value: randStr(8),
       }),
       t('button', {
-        textContent: 'Join Game',
+        textContent: 'Join',
         className: 'flex-1',
-        onclick: (e: any) => {
+        onclick: (e) => {
           e.preventDefault();
           startWebSocket({
             action: 'join',

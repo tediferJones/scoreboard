@@ -44,6 +44,11 @@ input, select {
   @apply dark:border-slate-600;
 }
 
+.border-b {
+  @apply border-slate-300;
+  @apply dark:border-slate-600;
+}
+
 button {
   @apply px-4;
   @apply py-2;

@@ -54,30 +54,32 @@ export default class GamesManager {
         const userId = Bun.hash(msg.username).toString();
         const currentGame = this.activeGames[gameCode];
 
-        if (this.activeGames[gameCode].closeTimeout) {
-          clearTimeout(this.activeGames[gameCode].closeTimeout);
-        }
-
-        if (currentGame.players[userId]) {
-          if (!currentGame.players[userId].data.isConnected) {
-            currentGame.players[userId].data.isConnected = true;
-            ws.data = currentGame.players[userId].data;
-            currentGame.players[userId] = ws;
-            return this.getResMsg(msg.gameCode, userId);
+        if (currentGame) {
+          if (currentGame.closeTimeout) {
+            clearTimeout(this.activeGames[gameCode].closeTimeout);
           }
 
-          return { 
-            ...this.activeGames[gameCode],
-            players: Object.keys(currentGame.players).map(key => currentGame.players[key].data),
-            status: 'error',
-            errorMsg: 'Username already exists',
-            userId: 'error',
-            username: 'error',
+          if (currentGame.players[userId]) {
+            if (!currentGame.players[userId].data.isConnected) {
+              currentGame.players[userId].data.isConnected = true;
+              ws.data = currentGame.players[userId].data;
+              currentGame.players[userId] = ws;
+              return this.getResMsg(msg.gameCode, userId);
+            }
+
+            return { 
+              ...this.activeGames[gameCode],
+              players: Object.keys(currentGame.players).map(key => currentGame.players[key].data),
+              status: 'error',
+              errorMsg: 'Username already exists',
+              userId: 'error',
+              username: 'error',
+            }
           }
+          this.activeGames[gameCode].players[userId] = ws;
+          this.setUserData(ws, msg);
         }
 
-        this.activeGames[gameCode].players[userId] = ws;
-        this.setUserData(ws, msg);
         return this.getResMsg(msg.gameCode, userId);
       },
       position: (ws, msg) => {
@@ -117,11 +119,12 @@ export default class GamesManager {
         return this.getResMsg(ws.data.gameCode, msg.userId)
       },
       score: (ws, msg) => {
-        // if (!msg.gameCode) throw Error('gameCode is required')
-        // what if current game or current player does not exist?
         const currentGame = this.activeGames[ws.data.gameCode];
         const currentPlayer = currentGame.players[msg.userId].data;
-        if (msg.score && currentPlayer.score.length < currentGame.currentRound) {
+        if (
+          currentGame && currentPlayer && msg.score &&
+            currentPlayer.score.length < currentGame.currentRound
+        ) {
           currentPlayer.score.push(Number(msg.score) || 0)
 
           // If all players have entered their score for the current round, increment currentRound prop
@@ -133,7 +136,6 @@ export default class GamesManager {
         return this.getResMsg(ws.data.gameCode, msg.userId)
       },
       trump: (ws, msg) => {
-        // if (!msg.gameCode) throw Error('gameCode is required');
         if (msg.suit) {
           const gameData = this.activeGames[ws.data.gameCode].gameInfo.extraData
           if (!gameData) throw Error('cant finds extraData')

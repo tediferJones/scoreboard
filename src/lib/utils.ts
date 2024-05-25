@@ -1,38 +1,34 @@
-import home from '@/render/home';
-import getUsername from '@/render/getUsername';
-import waiting from '@/render/waiting';
+import home from '@/pages/home';
+import getUsername from '@/pages/getUsername';
+import waiting from '@/pages/waiting';
+import error from '@/pages/error';
+import threeFiveEight from '@/pages/threeFiveEight';
+import shanghai from '@/pages/shanghai';
 import { ClientMsg, ServerMsg } from '@/types';
-import error from '@/render/error';
-import threeFiveEight from '@/render/threeFiveEight';
-import shanghai from '@/render/shanghai';
+import layout from '@/layout';
 
-export interface StrIdxNode extends HTMLElement {
-  [key: string]: any
-}
+type StrIdx = { [key: string]: any }
 
-interface Props extends Partial<{ [key in keyof HTMLElement]: any }> {
-  [key: string]: any
-};
-
-// type PropsV2<T> = HTMLElementTagNameMap[T]
-// type SpecificElementType<K extends keyof HTMLElementTagNameMap> = HTMLElementTagNameMap[K];
-
-export function getTag(type: keyof HTMLElementTagNameMap, props?: Props, children?: HTMLElement[]): HTMLElementTagNameMap[typeof type] {
-  const node: StrIdxNode = document.createElement(type);
+export function getTag(
+  type: keyof HTMLElementTagNameMap,
+  props?: Partial<HTMLElementTagNameMap[typeof type]> & StrIdx,
+  children?: HTMLElement[]
+): HTMLElementTagNameMap[typeof type] {
+  const node: HTMLElementTagNameMap[typeof type] & StrIdx = document.createElement(type);
   if (props) Object.keys(props).forEach(propKey => node[propKey] = props[propKey]);
   if (children?.length) node.append(...children);
   return node;
 }
 
 export function randStr(length: number) {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   return [...Array(length).keys()].map(() => {
     return chars[Math.floor(Math.random() * chars.length)]
-  }).join('')
+  }).join('');
 }
 
 export function getValById(id: string) {
-  return (document.querySelector(`#${id}`) as HTMLInputElement).value
+  return (document.querySelector(`#${id}`) as HTMLInputElement).value;
 }
 
 export function validateInputs(formId: string, inputIds: string[]) {
@@ -55,10 +51,10 @@ export function fromCamelCase(str: string, isPlural?: boolean) {
     if (i === 0) return char.toUpperCase();
     if ('A' <= char && char <= 'Z') return `${str} ${char}`;
     return str + char;
-  }, '') + (isPlural ? 's' : '')
+  }, '') + (isPlural ? 's' : '');
 }
 
-export const renderOpts: { [key in ServerMsg['status']]: (msg: ServerMsg) => Node } = {
+export const pages: { [key in ServerMsg['status']]: (msg: ServerMsg) => HTMLElement } = {
   home,
   getUsername,
   waiting,
@@ -83,6 +79,6 @@ export function startWebSocket(initMsg: { [key: string]: string }) {
     const msg: ServerMsg = JSON.parse(ws.data)
     console.log('NEW MESSAGE', msg)
     document.body.innerHTML = '';
-    document.body.appendChild(renderOpts[msg.status](msg))
+    document.body.appendChild(layout(pages[msg.status](msg)));
   }
 }

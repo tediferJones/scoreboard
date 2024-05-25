@@ -57,4 +57,4 @@ export interface ClientMsg extends StrObj {
   suit?: string,
 }
 
-export type RequireProp<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
+// export type RequireProp<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;

@@ -60,7 +60,7 @@ export default function waiting(msg: ServerMsg) {
         t('button', {
           textContent: player.ready ? '✓' : '✘',
           className: `text-xl ${player.ready ? 'bg-green-500' : 'bg-red-500'}`,
-          onclick: player.username !== msg.username ? undefined : (e: any) => {
+          onclick: player.username !== msg.username ? undefined : () => {
             sendMsg({
               action: 'ready',
               // gameCode: msg.gameCode,

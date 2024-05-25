@@ -7,20 +7,7 @@ import {
 } from '@/lib/utils';
 
 export default function home() {
-  return t('form', { className: 'showOutline w-4/5 grid grid-cols-3 gap-4', id: 'initForm' }, [
-    t('button', {
-      textContent: '🌗︎',
-      onclick: (e: any) => {
-        e.preventDefault()
-        console.log('toggle theme')
-        const theme = window.localStorage.getItem('theme')
-        const newTheme = theme === 'dark' ? 'light' : 'dark';
-        if (theme) document.documentElement.classList.remove(theme);
-        document.documentElement.classList.add(newTheme);
-        window.localStorage.setItem('theme', newTheme);
-      }
-    }),
-    t('h1', { textContent: 'Scoreboard', className: 'text-xl text-center col-span-3' }),
+  return t('form', { className: 'showOutline grid grid-cols-3 gap-4', id: 'initForm' }, [
     t('label', { textContent: 'Username:', htmlFor: 'username' }),
     t('input', {
       className: 'col-span-2',
@@ -32,15 +19,15 @@ export default function home() {
     }),
     t('hr', { className: 'col-span-3' }),
     t('label', { textContent: 'Game Type:', htmlFor: 'gameType' }),
-    t('select', { id: 'gameType', value: '' }, [
+    t('select', { id: 'gameType' }, [
       t('option', { textContent: '3-5-8', value: 'threeFiveEight' }),
       t('option', { textContent: 'Shanghai', value: 'shanghai' }),
     ]),
     t('button', {
-      textContent: 'Create Game',
+      textContent: 'Create',
       id: 'startGame',
       className: 'secondary',
-      onclick: (e: any) => {
+      onclick: (e) => {
         e.preventDefault();
         if (validateInputs('initForm', ['username', 'gameType'])) {
           startWebSocket({
@@ -51,22 +38,22 @@ export default function home() {
         }
       }
     }),
-    t('label', { textContent: 'Join Code:', htmlFor: 'joinCode' }),
-    t('input', { id: 'joinCode', type: 'text', maxLength: '5' }),
+    t('label', { textContent: 'Game Code:', htmlFor: 'gameCode' }),
+    t('input', { id: 'gameCode', type: 'text', maxLength: '5' }),
     t('button', {
-      textContent: 'Join Game',
+      textContent: 'Join',
       id: 'joinGame',
       className: 'secondary',
-      onclick: (e: any) => {
+      onclick: (e) => {
         e.preventDefault();
-        if (validateInputs('initForm', ['joinCode', 'username'])) {
+        if (validateInputs('initForm', ['gameCode', 'username'])) {
           startWebSocket({
             action: 'join',
-            gameCode: getValById('joinCode'),
+            gameCode: getValById('gameCode'),
             username: getValById('username'),
           });
         }
       }
-    })
+    }),
   ])
 }
