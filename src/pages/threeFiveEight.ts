@@ -1,19 +1,20 @@
 import { ServerMsg, SocketData } from '@/types';
 import { fromCamelCase, getValById, sendMsg, getTag as t } from '@/lib/utils';
+import scoreTable from '@/components/scoreTable';
 
 export default function threeFiveEight(msg: ServerMsg) {
-  const currentPlayer = msg.players.find(player => player.username === msg.username);
+  const currentPlayer = msg.players.find(player => player.username === msg.username)!;
   const orderedPlayers = msg.players.reduce((ordered, playerData) => {
     ordered[playerData.position - 1] = playerData;
     return ordered;
-  }, [] as SocketData[])
+  }, [] as SocketData[]);
   const handCount = [8, 5, 3];
   const offset = (msg.currentRound - 1) % 3;
   const currentRoundOrder = orderedPlayers.slice(offset).concat(orderedPlayers.slice(0, offset));
   const needToPickTrump = (
     msg.players.map(player => player.chosenTrumps.length)
     .reduce((total, count) => total + count) < msg.currentRound
-  )
+  );
 
   if (!msg.gameInfo.extraData?.trumpOpts) throw Error('cant find trump options');
 
@@ -27,9 +28,11 @@ export default function threeFiveEight(msg: ServerMsg) {
         className: 'underline',
       })
     ]),
-    t('div', { className: 'flex flex-wrap gap-4 justify-center showOutline'}, currentRoundOrder.map((player, i) => {
-      return t('div', { textContent: `${handCount[i]}: ${player.username}` })
-    })),
+    t('div', { className: 'flex flex-wrap gap-4 justify-center showOutline'},
+      currentRoundOrder.map((player, i) => {
+        return t('div', { textContent: `${handCount[i]}: ${player.username}` })
+      })
+    ),
     t('div', { className: 'showOutline flex gap-2 items-center', }, [
       t('p', { textContent: 'Trump Suit:' }),
       t('p', { textContent: msg.gameInfo.extraData.currentTrump, className: 'text-2xl' })
@@ -53,39 +56,11 @@ export default function threeFiveEight(msg: ServerMsg) {
         ])
       })
     ]),
-    t('div', { className: 'w-full overflow-x-auto'}, [
-      t('table', { className: 'w-full table-auto' }, [
-        t('tr', {}, [
-          t('td', { textContent: '' }),
-          ...orderedPlayers.map(player => {
-            return t('td', {
-              textContent: player.username,
-              className: `text-sm ${msg.username !== player.username ? '' : 'secondary'} ${player.isConnected ? '' : 'text-red-500'}`
-            })
-          })
-        ]),
-        ...[...Array(msg.currentRound).keys()].map(i => {
-          return (t('tr', {} , [
-            t('td', { textContent: `${i + 1}`, className: 'font-semibold w-1/6' }),
-            ...orderedPlayers.map(player => {
-              return t('td', {
-                textContent: player.score[i] !== undefined ? `${player.score[i]}` : 'X',
-                className: `border text-center ${msg.username !== player.username ? '' : 'secondary'}`
-              })
-            })
-          ]))
-        }),
-        t('tr', {}, [
-          t('td', { textContent: 'Total', className: 'font-semibold' }),
-          ...orderedPlayers.map(player => {
-            return t('td', {
-              textContent: `${player.score.slice(0, msg.currentRound - 1).reduce((total, round) => total += round, 0)}`,
-              className: `font-semibold ${msg.username !== player.username ? '' : 'secondary'}`
-            })
-          })
-        ])
-      ]),
-    ]),
+    scoreTable({
+      orderedPlayers,
+      currentRound: msg.currentRound,
+      currentUser: currentPlayer.username,
+    }),
     t('div', { className: 'showOutline' }, [
       needToPickTrump && currentRoundOrder[0].username === msg.username
         ? t('div', { className: 'grid grid-cols-2 gap-4' }, [
@@ -121,7 +96,7 @@ export default function threeFiveEight(msg: ServerMsg) {
                 console.log('submit score')
                 sendMsg({
                   action: 'score',
-                  score: getValById('score'),
+                  score: Number(getValById('score')),
                   username: msg.username,
                   userId: msg.userId,
                   // gameCode: msg.gameCode,

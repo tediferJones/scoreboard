@@ -1,5 +1,6 @@
 import {
   ActiveGame,
+  // AllGameInfo,
   ClientMsg,
   ClientSocket,
   GameInfo,
@@ -10,6 +11,7 @@ import {
 export default class GamesManager {
   activeGames: { [key: string]: ActiveGame }
   gameTypes: { [key in GameTypes]: GameInfo }
+  // gameTypes: AllGameInfo
   handler: { [key in ClientMsg['action']]: (ws: ClientSocket, msg: ClientMsg) => ServerMsg }
 
   constructor() {
@@ -29,6 +31,17 @@ export default class GamesManager {
         maxPlayers: 8,
         rules: 'https://gamerules.com/rules/shanghai-card-game',
         maxRound: 7,
+        extraData: {
+          roundGoal: [
+            'Two Groups',
+            'One Group and One Run',
+            'Two Runs',
+            'Three Groups',
+            'Two Groups and One Run',
+            'One Group and Two Runs',
+            'Three Runs,'
+          ]
+        }
       }
     };
     this.handler = {
@@ -125,7 +138,7 @@ export default class GamesManager {
           currentGame && currentPlayer && msg.score &&
             currentPlayer.score.length < currentGame.currentRound
         ) {
-          currentPlayer.score.push(Number(msg.score) || 0)
+          currentPlayer.score.push(msg.score || 0)
 
           // If all players have entered their score for the current round, increment currentRound prop
           const roundIsOver = Object.keys(currentGame.players).every(userId => (

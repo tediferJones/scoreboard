@@ -14,15 +14,16 @@
 //  - [ DONE ] If a round lasts a very long time and all connections time-out all game data would be lost
 // Only allow users to connect if the game status is 'waiting'
 //  - ISSUE: but then how can people rejoin a game if they disconnect?
+//  - ISSUE: what if someone else wants to join the game midway through?
 // Try to use vite as the bundler, this will allow hot module reloading,
 //  - This should save a lot of dev time cuz we wont have to restart every game after each save
 // Use ws.data.gameCode instead of sending gameCode with each ClientRequest
 //  - Try to do the same for things like username and userId, these are also saved in ws.data
 // Home page should use flexbox instead of grid, this will easily allow rows to wrap for smaller screens
-// Create components folder to help break up the clutter of render functions
-//  - Consider also creating a Layout file while we are at it
-// Handle socket disconnects while game is in the waiting phase
-// ThreeFiveEight view needs to display the current trump suit
+// [ DONE ] Create components folder to help break up the clutter of render functions
+//  - [ DONE ] Consider also creating a Layout file while we are at it
+// [ DONE ] Handle socket disconnects while game is in the waiting phase
+// [ DONE ] ThreeFiveEight view needs to display the current trump suit
 
 import build from '@/lib/build';
 import { randStr } from '@/lib/utils';
@@ -35,10 +36,10 @@ const router = new Bun.FileSystemRouter({
   style: 'nextjs',
   dir: 'src/public/',
   fileExtensions: ['.html', '.js', '.css', '.png', '.json']
-})
+});
 console.log(router)
 
-const gm = new GamesManager()
+const gm = new GamesManager();
 
 const server = Bun.serve<SocketData>({
   fetch(req, server) {
@@ -98,6 +99,6 @@ const server = Bun.serve<SocketData>({
       }
     }
   }
-})
+});
 
 console.log(`Server running on ${server.hostname}:${server.port}`)
