@@ -134,11 +134,12 @@ export default class GamesManager {
       score: (ws, msg) => {
         const currentGame = this.activeGames[ws.data.gameCode];
         const currentPlayer = currentGame.players[msg.userId].data;
+        console.log('wtf', currentGame, currentPlayer)
         if (
-          currentGame && currentPlayer && msg.score &&
-            currentPlayer.score.length < currentGame.currentRound
+          currentGame && currentPlayer && currentPlayer.score.length < currentGame.currentRound
         ) {
           currentPlayer.score.push(msg.score || 0)
+          console.log('pushed score')
 
           // If all players have entered their score for the current round, increment currentRound prop
           const roundIsOver = Object.keys(currentGame.players).every(userId => (

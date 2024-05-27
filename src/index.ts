@@ -24,6 +24,14 @@
 //  - [ DONE ] Consider also creating a Layout file while we are at it
 // [ DONE ] Handle socket disconnects while game is in the waiting phase
 // [ DONE ] ThreeFiveEight view needs to display the current trump suit
+// Fix errors where currentgame cannot be found at ws.close (in this file)
+// Handle errors where numeric input is '+1'
+//  - Multiple ways to handle this:
+//    - Use a plus/minus toggle button and pure numeric input
+//    - Set the program to calculate the score based on hand count, hand count never needs to be negative
+// Something is still wrong with how we delete old games, test the timeout and when the timeout gets cleared
+//  - Maybe clear the timeout everytime a user enters their score
+//  - POTENTIAL SOLUTION: setTimeout is never actually assigned to currentGame.closeTimeout so there is nothing to clear
 
 import build from '@/lib/build';
 import { randStr } from '@/lib/utils';
@@ -91,6 +99,9 @@ const server = Bun.serve<SocketData>({
         !currentGame.players[userId].data.isConnected
       ))
       if (allClosed) {
+        console.log('timout set for: ', new Date(Date.now() + 7200000))
+        // SET THIS TIMEOUT EQUAL TO currentGame.closeTimeout
+        // OTHERWISE THERE IS NO WAY TO CLEAR IT
         setTimeout(() => {
           delete gm.activeGames[ws.data.gameCode]
         }, 7200000) // 2 hours

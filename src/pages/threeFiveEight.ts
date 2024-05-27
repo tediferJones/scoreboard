@@ -62,6 +62,7 @@ export default function threeFiveEight(msg: ServerMsg) {
       currentUser: currentPlayer.username,
     }),
     t('div', { className: 'showOutline' }, [
+      msg.currentRound > msg.gameInfo.maxRound ? t('h1', { textContent: 'GAME OVER', className: 'font-bold text-xl' }) :
       needToPickTrump && currentRoundOrder[0].username === msg.username
         ? t('div', { className: 'grid grid-cols-2 gap-4' }, [
           t('div', { textContent: 'Choose trump suit for this round', className: 'col-span-2' }),
@@ -91,7 +92,7 @@ export default function threeFiveEight(msg: ServerMsg) {
             })
             : t('div', { className: 'flex gap-4 justify-center'}, [
               t('label', { textContent: 'Score:', htmlFor: 'score', className: 'w-1/3' }),
-              t('input', { type: 'number', id: 'score', value: '0', className: 'w-1/3', inputMode: 'numeric' }),
+              t('input', { type: 'number', id: 'score', value: '0', className: 'w-1/3', /*inputMode: 'numeric'*/ }),
               t('button', { textContent: 'Submit', className: 'w-1/3', onclick: () => {
                 console.log('submit score')
                 sendMsg({
