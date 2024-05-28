@@ -23,7 +23,7 @@ export interface ActiveGame {
   gameCode: string,
   errorMsg?: string,
   currentRound: number,
-  closeTimeout?: NodeJS.Timeout,
+  closeTimeout?: Timer,
 }
 
 export interface GameInfo {

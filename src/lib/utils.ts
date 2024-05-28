@@ -78,6 +78,10 @@ export function startWebSocket(initMsg: { [key: string]: string }) {
   ws.onmessage = (ws) => {
     const msg: ServerMsg = JSON.parse(ws.data)
     console.log('NEW MESSAGE', msg)
+    const params = new URLSearchParams(window.location.toString())
+    if (msg.status !== 'error' && (!params.get('username') || !params.get('gameCode'))) {
+      setQueryParam({ username: msg.username, gameCode: msg.gameCode });
+    }
     document.body.innerHTML = '';
     document.body.appendChild(layout(pages[msg.status](msg)));
   }

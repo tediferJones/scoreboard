@@ -9,7 +9,7 @@ import {
 } from '@/types';
 
 export default class GamesManager {
-  activeGames: { [key: string]: ActiveGame }
+  activeGames: { [key: string]: ActiveGame /* | undefined */ } // This will show us all the problems where currentGame could be undefined 
   gameTypes: { [key in GameTypes]: GameInfo }
   // gameTypes: AllGameInfo
   handler: { [key in ClientMsg['action']]: (ws: ClientSocket, msg: ClientMsg) => ServerMsg }
@@ -70,6 +70,7 @@ export default class GamesManager {
         if (currentGame) {
           if (currentGame.closeTimeout) {
             clearTimeout(this.activeGames[gameCode].closeTimeout);
+            console.log('timeout cleared for', gameCode)
           }
 
           if (currentGame.players[userId]) {

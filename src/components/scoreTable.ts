@@ -36,7 +36,7 @@ export default function scoreTable({
         t('td', { textContent: 'Total', className: 'font-semibold' }),
         ...orderedPlayers.map(player => {
           return t('td', {
-            textContent: `${player.score.slice(0, currentRound - 1).reduce((total, round) => total += round, 0)}`,
+            textContent: `${player.score.reduce((total, round) => total += round, 0)}`,
             className: `font-semibold ${currentUser !== player.username ? '' : 'secondary'}`
           })
         })

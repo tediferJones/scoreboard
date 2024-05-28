@@ -1,4 +1,4 @@
-import { fromCamelCase, sendMsg, setQueryParam, getTag as t } from '@/lib/utils';
+import { fromCamelCase, sendMsg, getTag as t } from '@/lib/utils';
 import { ServerMsg, SocketData } from '@/types';
 
 export default function waiting(msg: ServerMsg) {
@@ -10,7 +10,6 @@ export default function waiting(msg: ServerMsg) {
   }, [] as SocketData[])
   console.log('Ordered players:', orderedPlayers)
 
-  setQueryParam({ gameCode: msg.gameCode, username: msg.username });
   const joinUrl = new URL(window.location.href);
   joinUrl.searchParams.delete('username');
 

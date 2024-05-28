@@ -3,7 +3,7 @@ import { getTag as t } from '@/lib/utils';
 export default function layout(children: HTMLElement) {
   return t('div', { className: 'min-h-screen flex flex-col' }, [
     t('div', { className: 'flex justify-between items-center px-8 py-4 border-b' }, [
-      t('h1', { textContent: 'Scoreboard', className: 'text-xl font-semibold' }),
+      t('a', { textContent: 'Scoreboard', className: 'text-xl font-semibold', href: '/' }),
       t('button', {
         textContent: '🌗︎',
         className: 'secondary',
