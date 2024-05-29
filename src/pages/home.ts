@@ -22,6 +22,7 @@ export default function home() {
     t('select', { id: 'gameType' }, [
       t('option', { textContent: '3-5-8', value: 'threeFiveEight' }),
       t('option', { textContent: 'Shanghai', value: 'shanghai' }),
+      t('option', { textContent: 'Thousand', value: 'thousand' }),
     ]),
     t('button', {
       textContent: 'Create',

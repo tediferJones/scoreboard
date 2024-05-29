@@ -1,13 +1,15 @@
 import { ServerMsg, SocketData } from '@/types';
 import { fromCamelCase, getValById, sendMsg, getTag as t } from '@/lib/utils';
 import scoreTable from '@/components/scoreTable';
+import basicGameInfo from '@/components/basicGameInfo';
 
 export default function threeFiveEight(msg: ServerMsg) {
   const currentPlayer = msg.players.find(player => player.username === msg.username)!;
-  const orderedPlayers = msg.players.reduce((ordered, playerData) => {
-    ordered[playerData.position - 1] = playerData;
-    return ordered;
-  }, [] as SocketData[]);
+  const orderedPlayers = msg.players;
+  // const orderedPlayers = msg.players.reduce((ordered, playerData) => {
+  //   ordered[playerData.position - 1] = playerData;
+  //   return ordered;
+  // }, [] as SocketData[]);
   const handCount = [8, 5, 3];
   const offset = (msg.currentRound - 1) % 3;
   const currentRoundOrder = orderedPlayers.slice(offset).concat(orderedPlayers.slice(0, offset));
@@ -15,19 +17,25 @@ export default function threeFiveEight(msg: ServerMsg) {
     msg.players.map(player => player.chosenTrumps.length)
     .reduce((total, count) => total + count) < msg.currentRound
   );
+  // console.log(JSON.stringify(msg.players) === JSON.stringify(orderedPlayers))
 
   if (!msg.gameInfo.extraData?.trumpOpts) throw Error('cant find trump options');
 
   return t('div', { className: 'showOutline flex flex-col gap-4 items-center' }, [
-    t('div', { className: 'flex flex-wrap gap-4 justify-center showOutline' }, [
-      t('p', { textContent: `Current Round: ${msg.currentRound}` }),
-      t('h1', { textContent: `Game: ${fromCamelCase(msg.gameType)}` }),
-      t('a', {
-        textContent: 'View Rules',
-        href: msg.gameInfo.rules,
-        className: 'underline',
-      })
-    ]),
+    basicGameInfo({
+      currentRound: msg.currentRound,
+      gameType: msg.gameType,
+      rules: msg.gameInfo.rules,
+    }),
+    // t('div', { className: 'flex flex-wrap gap-4 justify-center showOutline' }, [
+    //   t('p', { textContent: `Current Round: ${msg.currentRound}` }),
+    //   t('h1', { textContent: `Game: ${fromCamelCase(msg.gameType)}` }),
+    //   t('a', {
+    //     textContent: 'View Rules',
+    //     href: msg.gameInfo.rules,
+    //     className: 'underline',
+    //   })
+    // ]),
     t('div', { className: 'flex flex-wrap gap-4 justify-center showOutline'},
       currentRoundOrder.map((player, i) => {
         return t('div', { textContent: `${handCount[i]}: ${player.username}` })
@@ -60,6 +68,7 @@ export default function threeFiveEight(msg: ServerMsg) {
       orderedPlayers,
       currentRound: msg.currentRound,
       currentUser: currentPlayer.username,
+      maxRound: msg.gameInfo.maxRound,
     }),
     t('div', { className: 'showOutline' }, [
       msg.currentRound > msg.gameInfo.maxRound ? t('h1', { textContent: 'GAME OVER', className: 'font-bold text-xl' }) :

@@ -5,7 +5,8 @@ export default function getUsername(msg: ServerMsg) {
   const gameCode = new URL(window.location.href).searchParams.get('gameCode')
   return t('form', { className: 'showOutline flex flex-col gap-4' }, [
     t('p', { textContent: `Game Code: ${gameCode}`, className: 'text-center' }),
-    t('p', { className: `text-center text-red-500 ${msg.errorMsg ? 'block' : 'hidden'}`, textContent: msg.errorMsg }),
+    // t('p', { className: `text-center text-red-500 ${msg.errorMsg ? 'block' : 'hidden'}`, textContent: msg.errorMsg }),
+    t('p', { id: 'error', className: 'text-center text-red-500 hidden' }),
     t('form', { className: 'flex flex-wrap gap-4' }, [
       t('label', { textContent: 'Username:', htmlFor: 'username', className: 'flex-1' }),
       t('input', {

@@ -1,10 +1,11 @@
 import home from '@/pages/home';
 import getUsername from '@/pages/getUsername';
 import waiting from '@/pages/waiting';
-import error from '@/pages/error';
+// import error from '@/pages/error';
 import threeFiveEight from '@/pages/threeFiveEight';
 import shanghai from '@/pages/shanghai';
-import { ClientMsg, ServerMsg } from '@/types';
+import thousand from '@/pages/thousand';
+import { ClientMsg, Pages, ServerMsg } from '@/types';
 import layout from '@/layout';
 
 type StrIdx = { [key: string]: any }
@@ -54,13 +55,15 @@ export function fromCamelCase(str: string, isPlural?: boolean) {
   }, '') + (isPlural ? 's' : '');
 }
 
-export const pages: { [key in ServerMsg['status']]: (msg: ServerMsg) => HTMLElement } = {
+// export const pages: { [key in ServerMsg['status']]: (msg: ServerMsg) => HTMLElement } = {
+export const pages: { [key in Pages]: (msg: ServerMsg) => HTMLElement } = {
   home,
   getUsername,
   waiting,
-  error,
+  // error,
   threeFiveEight,
   shanghai,
+  thousand,
 }
 
 export let ws: WebSocket;
@@ -69,6 +72,7 @@ export function sendMsg(msg: ClientMsg) {
 }
 
 export function startWebSocket(initMsg: { [key: string]: string }) {
+  if (ws) ws.close();
   ws = new WebSocket(`${window.location.protocol === 'http:' ? 'ws:' : 'wss:'}//${window.location.host}`)
   ws.onopen = () => {
     console.log('opened', initMsg)
@@ -79,10 +83,20 @@ export function startWebSocket(initMsg: { [key: string]: string }) {
     const msg: ServerMsg = JSON.parse(ws.data)
     console.log('NEW MESSAGE', msg)
     const params = new URLSearchParams(window.location.toString())
-    if (msg.status !== 'error' && (!params.get('username') || !params.get('gameCode'))) {
-      setQueryParam({ username: msg.username, gameCode: msg.gameCode });
+    if (msg.status === 'error') {
+      const errorContainer = document.querySelector('#error');
+      if (errorContainer && msg.errorMsg) {
+        errorContainer.classList.remove('hidden');
+        errorContainer.textContent = msg.errorMsg;
+      }
+    } else if (msg.status === 'refresh') {
+      window.location.reload();
+    } else {
+      if (!params.get('username') || !params.get('gameCode')) {
+        setQueryParam({ username: msg.username, gameCode: msg.gameCode });
+      }
+      document.body.innerHTML = '';
+      document.body.appendChild(layout(pages[msg.status](msg)));
     }
-    document.body.innerHTML = '';
-    document.body.appendChild(layout(pages[msg.status](msg)));
   }
 }

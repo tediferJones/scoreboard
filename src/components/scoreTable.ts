@@ -4,11 +4,13 @@ import { SocketData } from '@/types';
 export default function scoreTable({
   orderedPlayers,
   currentUser,
-  currentRound
+  currentRound,
+  maxRound,
 }: {
   orderedPlayers: SocketData[],
   currentUser: string,
   currentRound: number
+  maxRound: number,
 }) {
   return t('div', { className: 'w-full overflow-x-auto'}, [
     t('table', { className: 'w-full table-auto' }, [
@@ -21,8 +23,8 @@ export default function scoreTable({
           })
         })
       ]),
-      ...[...Array(currentRound).keys()].map(i => {
-        return (t('tr', {} , [
+      ...[...Array(currentRound > maxRound ? maxRound : currentRound).keys()].map(i => {
+        return t('tr', {} , [
           t('td', { textContent: `${i + 1}`, className: 'font-semibold w-1/6' }),
           ...orderedPlayers.map(player => {
             return t('td', {
@@ -30,7 +32,7 @@ export default function scoreTable({
               className: `border text-center ${currentUser !== player.username ? '' : 'secondary'}`
             })
           })
-        ]))
+        ])
       }),
       t('tr', {}, [
         t('td', { textContent: 'Total', className: 'font-semibold' }),

@@ -12,10 +12,13 @@ export interface SocketData {
 
 export type ClientSocket = ServerWebSocket<SocketData>
 
-export type GameTypes = 'threeFiveEight' | 'shanghai'
+export type GameTypes = 'threeFiveEight' | 'shanghai' | 'thousand'
+
+export type Pages = GameTypes | 'home' | 'getUsername' | 'waiting'
 
 export interface ActiveGame {
-  status: 'home' | 'getUsername' | 'waiting' | 'error' | GameTypes,
+  // status: 'home' | 'getUsername' | 'waiting' | 'error' | 'refresh' | GameTypes,
+  status: Pages | 'error' | 'refresh'
   players: { [key: string]: ClientSocket },
   gameType: GameTypes,
   // gameInfo: GameInfo<ActiveGame['gameType']>,
@@ -31,10 +34,11 @@ export interface GameInfo {
   maxPlayers: number,
   rules: string,
   maxRound: number,
-  extraData?: {
+  extraData: {
     trumpOpts?: string[],
     currentTrump?: string,
     roundGoal?: string[],
+    maxScore?: number,
   },
 }
 
@@ -92,11 +96,19 @@ export interface ClientMsg extends StrObj {
 // } | {
 //   action: 'join',
 //   username: string,
-//   gameType: string,
+//   gameCode: string,
 // } | {
 //   action: 'position',
 //   position: 1 | -1,
-// }) & StrObj;
+// } | {
+//   action: 'ready'
+// } | {
+//   action: 'score',
+//   score: number,
+// } | {
+//   action: 'trump',
+//   suit: string,
+// })// & StrObj;
 
 // type ClientActions = 'start' | 'join' | 'position' | 'ready' | 'score' | 'trump'
 // type ClientMsg<T> = {
