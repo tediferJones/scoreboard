@@ -5,6 +5,7 @@ import {
   validateInputs,
   randStr
 } from '@/lib/utils';
+import { GameTypes } from '@/types';
 
 export default function home() {
   return t('form', { className: 'showOutline grid grid-cols-3 gap-4', id: 'initForm' }, [
@@ -33,8 +34,9 @@ export default function home() {
         if (validateInputs('initForm', ['username', 'gameType'])) {
           startWebSocket({
             action: 'start',
-            gameType: getValById('gameType'),
+            gameType: getValById('gameType') as GameTypes,
             username: getValById('username'),
+            gameCode: '',
           })
         }
       }

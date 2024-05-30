@@ -5,7 +5,7 @@ import waiting from '@/pages/waiting';
 import threeFiveEight from '@/pages/threeFiveEight';
 import shanghai from '@/pages/shanghai';
 import thousand from '@/pages/thousand';
-import { ClientMsg, Pages, ServerMsg } from '@/types';
+import { ClientActions, ClientMsg, Pages, ServerMsg, Test2 } from '@/types';
 import layout from '@/layout';
 
 type StrIdx = { [key: string]: any }
@@ -67,11 +67,12 @@ export const pages: { [key in Pages]: (msg: ServerMsg) => HTMLElement } = {
 }
 
 export let ws: WebSocket;
-export function sendMsg(msg: ClientMsg) {
+export function sendMsg<T extends ClientActions>(msg: Test2<T>) {
   ws.send(JSON.stringify(msg))
 }
 
-export function startWebSocket(initMsg: { [key: string]: string }) {
+// export function startWebSocket(initMsg: { [key: string]: string }) {
+export function startWebSocket(initMsg: Test2<'start' | 'join'>) {
   if (ws) ws.close();
   ws = new WebSocket(`${window.location.protocol === 'http:' ? 'ws:' : 'wss:'}//${window.location.host}`)
   ws.onopen = () => {
@@ -92,6 +93,8 @@ export function startWebSocket(initMsg: { [key: string]: string }) {
     } else if (msg.status === 'refresh') {
       window.location.reload();
     } else {
+      // MOVE THIS INTO ON OPEN CALL, no point in resetting this on every message
+      // And is honestly more bound to when the socket opens
       if (!params.get('username') || !params.get('gameCode')) {
         setQueryParam({ username: msg.username, gameCode: msg.gameCode });
       }

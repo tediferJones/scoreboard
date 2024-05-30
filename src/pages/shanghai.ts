@@ -4,8 +4,6 @@ import scoreTable from '@/components/scoreTable';
 import basicGameInfo from '@/components/basicGameInfo';
 
 export default function shanghai(msg: ServerMsg) {
-  // return t('h1', { textContent: 'Shanghai game is running' })
-  console.log(msg)
   const currentPlayer = msg.players.find(player => player.username === msg.username)!;
   return t('div', { className: 'showOutline flex flex-col gap-4 items-center' }, [
     basicGameInfo({
@@ -39,9 +37,6 @@ export default function shanghai(msg: ServerMsg) {
               sendMsg({
                 action: 'score',
                 score: Number(getValById('score')),
-                username: msg.username,
-                userId: msg.userId,
-                // gameCode: msg.gameCode,
               })
             }})
           ])

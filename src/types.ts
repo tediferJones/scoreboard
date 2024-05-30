@@ -2,6 +2,7 @@ import { ServerWebSocket } from 'bun';
 
 export interface SocketData {
   username: string,
+  userId: string,
   score: number[],
   ready: boolean,
   gameCode: string,
@@ -63,7 +64,7 @@ export interface GameInfo {
 // }
 
 export interface ServerMsg extends Omit<ActiveGame, 'players'> {
-  players: SocketData[],
+  players: Omit<SocketData, 'userId'>[],
   userId: string,
   username: string,
 }
@@ -83,6 +84,39 @@ export interface ClientMsg extends StrObj {
   suit?: string,
   score?: number,
 }
+
+type ClientMsgTest = {
+  start: {
+    username: string,
+    gameType: GameTypes,
+    gameCode: string,
+  },
+  join: {
+    username: string,
+    gameCode: string,
+  },
+  position: {
+    position: 1 | -1,
+  },
+  ready: {},
+  score: {
+    score: number,
+  },
+  trump: {
+    suit: string
+  }
+}
+
+export type ClientActions = keyof ClientMsgTest;
+export type Test2<T extends ClientActions> = { // Name: ClientMsg
+  action: T,
+} & ClientMsgTest[T]
+
+export type Test3 = { // Name: AnyClientMsg
+  [Action in ClientActions]: {
+    action: Action
+  } & ClientMsgTest[Action]
+}[ClientActions]
 
 // type ClientActions = 'start' | 'join' | 'position' | 'ready' | 'score' | 'trump'
 // type Client<T> = {

@@ -1,5 +1,5 @@
 import { getTag as t } from '@/lib/utils';
-import { SocketData } from '@/types';
+import { ServerMsg } from '@/types';
 
 export default function scoreTable({
   orderedPlayers,
@@ -7,9 +7,9 @@ export default function scoreTable({
   currentRound,
   maxRound,
 }: {
-  orderedPlayers: SocketData[],
+  orderedPlayers: ServerMsg['players'],
   currentUser: string,
-  currentRound: number
+  currentRound: number,
   maxRound: number,
 }) {
   return t('div', { className: 'w-full overflow-x-auto'}, [

@@ -1,18 +1,20 @@
 import {
   ActiveGame,
+  ClientActions,
   // AllGameInfo,
   ClientMsg,
   ClientSocket,
   GameInfo,
   GameTypes,
-  ServerMsg
+  ServerMsg,
+  Test2
 } from '@/types';
 
 export default class GamesManager {
-  activeGames: { [key: string]: ActiveGame | undefined } // This will show us all the problems where currentGame could be undefined 
+  activeGames: { [key: string]: ActiveGame | undefined }
   gameTypes: { [key in GameTypes]: GameInfo }
-  // gameTypes: AllGameInfo
-  handler: { [key in ClientMsg['action']]: (ws: ClientSocket, msg: ClientMsg) => void | { status: 'error', errorMsg: string } }
+  // handler: { [key in ClientMsg['action']]: (ws: ClientSocket, msg: ClientMsg) => void | { status: 'error', errorMsg: string } }
+  handler: { [key in ClientActions]: (ws: ClientSocket, msg: Test2<key>) => void | { status: 'error', errorMsg: string } }
 
   constructor() {
     this.activeGames = {};
@@ -68,7 +70,6 @@ export default class GamesManager {
           currentRound: 1,
         }
         this.setUserData(ws, msg)
-        // return this.getResMsg(msg.gameCode, userId)
       },
       join: (ws, msg) => {
         if (!msg.gameCode) throw Error('gameCode is required to join a game')
@@ -88,57 +89,54 @@ export default class GamesManager {
               ws.data = currentGame.players[userId].data;
               currentGame.players[userId] = ws;
               return
-              // return this.getResMsg(msg.gameCode, userId);
             }
 
             return {
               status: 'error',
               errorMsg: 'Username already exists'
             }
-            // return { 
-            //   ...this.activeGames[gameCode],
-            //   players: Object.keys(currentGame.players).map(key => currentGame.players[key].data),
-            //   status: 'error',
-            //   errorMsg: 'Username already exists',
-            //   userId: 'error',
-            //   username: 'error',
-            // }
           }
           currentGame.players[userId] = ws;
           this.setUserData(ws, msg);
         }
-
-        // return this.getResMsg(msg.gameCode, userId);
       },
       position: (ws, msg) => {
-        // if (!msg.gameCode) throw Error('gameCode is required');
-        if (!msg.position) return // this.getResMsg(ws.data.gameCode, msg.userId);
-        const currentGame = this.activeGames[ws.data.gameCode];
-        if (!currentGame) throw Error('cant find current game')
-        console.log('changing position')
-        const players = currentGame.players;
-        const currentPos = players[msg.userId].data.position;
-        const newPos = currentPos + msg.position;
-        const shiftedUserId = Object.keys(players).find(userId => players[userId].data.position === newPos);
-        console.log(currentPos, newPos, shiftedUserId)
-        if (!shiftedUserId || 0 > newPos || newPos > Object.keys(players).length) {
-          return
-          // return this.getResMsg(ws.data.gameCode, msg.userId);
-        }
-        players[msg.userId].data.position = newPos;
-        players[msg.userId].data.ready = false;
-        players[shiftedUserId].data.position = currentPos;
-        players[shiftedUserId].data.ready = false;
+        const userData = ws.data;
+        const currentGame = this.activeGames[userData.gameCode];
+        if (!currentGame) return
 
-        // return this.getResMsg(ws.data.gameCode, msg.userId);
+        const swapUserId = Object.keys(currentGame.players).find(userId => 
+          currentGame.players[userId].data.position === userData.position + msg.position
+        );
+        if (!swapUserId) return
+        const swapPlayer = currentGame.players[swapUserId].data;
+
+        userData.ready = swapPlayer.ready = false;
+        [ userData.position, swapPlayer.position ] = [ swapPlayer.position, userData.position ];
+
+        // if (!msg.position) return
+        // const currentGame = this.activeGames[ws.data.gameCode];
+        // if (!currentGame) throw Error('cant find current game')
+        // console.log('changing position')
+        // const players = currentGame.players;
+        // const currentPos = players[msg.userId].data.position;
+        // const newPos = currentPos + msg.position;
+        // const shiftedUserId = Object.keys(players).find(userId => players[userId].data.position === newPos);
+        // console.log(currentPos, newPos, shiftedUserId)
+        // if (!shiftedUserId || 0 > newPos || newPos > Object.keys(players).length) {
+        //   return
+        // }
+        // players[msg.userId].data.position = newPos;
+        // players[msg.userId].data.ready = false;
+        // players[shiftedUserId].data.position = currentPos;
+        // players[shiftedUserId].data.ready = false;
       },
       ready: (ws, msg) => {
-        // if (!msg.gameCode) throw Error('gameCode is required')
-        const currentGame = this.activeGames[ws.data.gameCode];
-        // const rotationIndex = msg.position - 1
+        const { gameCode, userId } = ws.data;
+        const currentGame = this.activeGames[gameCode];
         if (!currentGame) throw Error('cant find current game')
-        if (currentGame?.players[msg.userId]) {
-          currentGame.players[msg.userId].data.ready = !currentGame.players[msg.userId].data.ready;
+        if (currentGame?.players[userId]) {
+          currentGame.players[userId].data.ready = !currentGame.players[userId].data.ready;
         }
 
         const playerKeys = Object.keys(currentGame.players);
@@ -147,27 +145,19 @@ export default class GamesManager {
         if (allReady && minPlayers <= playerKeys.length && playerKeys.length <= maxPlayers) {
           currentGame.status = currentGame.gameType;
         }
-        
-        // return this.getResMsg(ws.data.gameCode, msg.userId)
       },
       score: (ws, msg) => {
-        const currentGame = this.activeGames[ws.data.gameCode];
+        const { gameCode, userId, score } = ws.data;
+        const currentGame = this.activeGames[gameCode];
         if (!currentGame) throw Error('cant find current game')
-        const currentPlayer = currentGame.players[msg.userId].data;
-        console.log('wtf', currentGame, currentPlayer)
-        if (
-          currentGame && currentPlayer && currentPlayer.score.length < currentGame.currentRound
-        ) {
-          currentPlayer.score.push(msg.score || 0)
-          console.log('pushed score')
-
+        if (score.length < currentGame.currentRound) {
+          score.push(msg.score || 0)
           // If all players have entered their score for the current round, increment currentRound prop
           const roundIsOver = Object.keys(currentGame.players).every(userId => (
             currentGame.players[userId].data.score.length === currentGame.currentRound
           ));
           if (roundIsOver) currentGame.currentRound += 1;
         }
-        // return this.getResMsg(ws.data.gameCode, msg.userId)
       },
       trump: (ws, msg) => {
         const currentGame = this.activeGames[ws.data.gameCode];
@@ -178,16 +168,16 @@ export default class GamesManager {
           ws.data.chosenTrumps.push(msg.suit);
           gameData.currentTrump = msg.suit;
         }
-        // return this.getResMsg(ws.data.gameCode, msg.userId);
       }
     }
   }
 
-  setUserData(ws: ClientSocket, msg: ClientMsg) {
+  // setUserData(ws: ClientSocket, msg: ClientMsg) {
+  setUserData<T extends 'start' | 'join'>(ws: ClientSocket, msg: Test2<T>) {
     if (!msg.gameCode) throw Error('gameCode is required for websocket user data')
     const currentGame = this.activeGames[msg.gameCode];
     if (!currentGame) throw Error('cant find current game')
-    console.log(this.activeGames[msg.gameCode])
+    // console.log(this.activeGames[msg.gameCode])
     ws.data = {
       username: msg.username,
       score: [],
@@ -196,25 +186,17 @@ export default class GamesManager {
       isConnected: true,
       position: Object.keys(currentGame.players).length,
       chosenTrumps: [],
+      userId: Bun.hash(msg.username).toString()
     }
   }
-
-  // getResMsg(gameCode: string, userId: string) {
-  //   const currentGame = this.activeGames[gameCode]
-  //   if (!currentGame) throw Error('cant find current game')
-  //   return {
-  //     ...this.activeGames[gameCode],
-  //     // players: Object.keys(this.activeGames[gameCode].players).map(key => currentGame.players[key]?.data),
-  //     players: Object.keys(currentGame.players).map(key => currentGame.players[key].data),
-  //     userId,
-  //     username: currentGame.players[userId].data.username
-  //   }
-  // }
 
   sendAll(gameCode: string) {
     const currentGame = this.activeGames[gameCode]
     if (!currentGame) throw Error('cant find current game')
-    const players = Object.keys(currentGame.players).map(userId => currentGame.players[userId].data).sort((a, b) => a.position - b.position)
+    const players = Object.keys(currentGame.players).map(currentUserId => {
+      const { userId, ...rest } = currentGame.players[currentUserId].data;
+      return rest;
+    }).sort((a, b) => a.position - b.position);
     Object.keys(currentGame.players).forEach(userId => {
       const currentPlayer = currentGame.players[userId]
       if (currentPlayer.data.isConnected) {

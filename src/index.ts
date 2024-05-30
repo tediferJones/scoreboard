@@ -34,11 +34,16 @@
 //  - POTENTIAL SOLUTION: setTimeout is never actually assigned to currentGame.closeTimeout so there is nothing to clear
 // Reloading the page for every change (see client.ts) seems like a bad idea
 //  - Mainly because it re-fetches the entire website from the server
+// Move maxRound into extraData
+// Move client side query param setting from ws.onmessage to ws.onopen
+// Re-write handlers in GamesManager
+//  - We now verify game exists before running handler, so hopefully we dont have verify game exists in every handler
+// Rename new ClientMsg names
 
 import build from '@/lib/build';
 import { randStr } from '@/lib/utils';
 import GamesManager from '@/lib/GamesManager';
-import { ClientMsg, SocketData, } from '@/types';
+import { SocketData, Test3, } from '@/types';
 
 await build();
 
@@ -75,32 +80,34 @@ const server = Bun.serve<SocketData>({
   websocket: {
     message(ws, data) {
       console.log(data)
-      const msg: ClientMsg = JSON.parse(data.toString());
-      if (!msg.gameCode) msg.gameCode = randStr(5);
-      const res = gm.handler[msg.action](ws, msg);
-      console.log(gm.activeGames)
-      if (res) {
-        ws.send(JSON.stringify(res));
-        ws.close();
-      } else if (!gm.activeGames[msg.gameCode]) {
+      const msg: Test3 = JSON.parse(data.toString());
+      if (msg.action === 'start') msg.gameCode = randStr(5);
+
+      if (msg.action !== 'start' && ws.data?.gameCode && !gm.activeGames[ws.data.gameCode]) {
+        console.log('SEND REFRESH AND CLOSE SOCKET')
         ws.send(JSON.stringify({ status: 'refresh' }));
         ws.close();
       } else {
-        gm.sendAll(ws.data.gameCode);
+        const res = gm.handler[msg.action](ws, msg as any);
+        if (res) {
+          ws.send(JSON.stringify(res));
+          ws.close();
+        } else {
+          gm.sendAll(ws.data.gameCode);
+        }
       }
 
+      // const res = gm.handler[msg.action](ws, msg as any);
       // if (res) {
       //   ws.send(JSON.stringify(res));
       //   ws.close();
-      // } else {
-      //   gm.sendAll(ws.data.gameCode);
-      // }
-
-      // if (res.status === 'error') {
-      //   ws.send(JSON.stringify(res));
+      // // } else if (!gm.activeGames[msg.gameCode || ws.data.gameCode]) {
+      // } else if (!gm.activeGames[ws.data.gameCode]) {
+      //   console.log('SEND REFRESH AND CLOSE SOCKET')
+      //   ws.send(JSON.stringify({ status: 'refresh' }));
       //   ws.close();
       // } else {
-      //   gm.sendAll(res.gameCode);
+      //   gm.sendAll(ws.data.gameCode);
       // }
     },
     open(ws) {
@@ -108,7 +115,8 @@ const server = Bun.serve<SocketData>({
     },
     close(ws) {
       // console.log('closed', gm.activeGames);
-      console.log('closed', ws?.data);
+      console.log('closed', ws.data);
+      if (!ws.data) return
       const userId = Bun.hash(ws.data.username).toString();
       const currentGame = gm.activeGames[ws.data.gameCode];
       if (!currentGame) throw Error('cant find current game')
@@ -119,15 +127,11 @@ const server = Bun.serve<SocketData>({
       )
       console.log('All Closed?', allClosed)
       if (allClosed) {
-        console.log('timout set at: ', new Date())
-        // SET THIS TIMEOUT EQUAL TO currentGame.closeTimeout
-        // OTHERWISE THERE IS NO WAY TO CLEAR IT
+        // console.log('timout set at: ', new Date())
         currentGame.closeTimeout = setTimeout(() => {
-          // if (gm.activeGames[ws.data.gameCode]) {
-            console.log('delete gameCode', ws.data.gameCode)
-            delete gm.activeGames[ws.data.gameCode]
-          // }
-          console.log(gm.activeGames)
+          // console.log('delete gameCode', ws.data.gameCode)
+          delete gm.activeGames[ws.data.gameCode]
+          // console.log(gm.activeGames)
         }, /*4 * 60 **/ 60 * 1000) // 4 hours
       } else {
         gm.sendAll(ws.data.gameCode)
