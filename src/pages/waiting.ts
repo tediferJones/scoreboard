@@ -16,7 +16,9 @@ export default function waiting(msg: ServerMsg) {
       t('a', {
         textContent: msg.gameCode,
         href: joinUrl.toString(),
-        className: 'underline'
+        className: 'underline',
+        target: '_blank',
+        rel: 'noopener noreferrer',
       }),
     ]),
     ...msg.players.map(player => 

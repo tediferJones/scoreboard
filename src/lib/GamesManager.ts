@@ -4,6 +4,7 @@ import {
   // AllGameInfo,
   ClientMsg,
   ClientSocket,
+  Errors,
   GameInfo,
   GameTypes,
   ServerMsg,
@@ -14,7 +15,7 @@ export default class GamesManager {
   activeGames: { [key: string]: ActiveGame | undefined }
   gameTypes: { [key in GameTypes]: GameInfo }
   // handler: { [key in ClientMsg['action']]: (ws: ClientSocket, msg: ClientMsg) => void | { status: 'error', errorMsg: string } }
-  handler: { [key in ClientActions]: (ws: ClientSocket, msg: Test2<key>) => void | { status: 'error', errorMsg: string } }
+  handler: { [key in ClientActions]: (ws: ClientSocket, msg: Test2<key>) => void | { status: Errors, errorMsg: string, gameCode?: string } }
 
   constructor() {
     this.activeGames = {};
@@ -92,8 +93,9 @@ export default class GamesManager {
             }
 
             return {
-              status: 'error',
-              errorMsg: 'Username already exists'
+              status: 'badUsername',
+              errorMsg: 'Username already exists',
+              gameCode,
             }
           }
           currentGame.players[userId] = ws;

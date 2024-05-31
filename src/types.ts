@@ -17,9 +17,11 @@ export type GameTypes = 'threeFiveEight' | 'shanghai' | 'thousand'
 
 export type Pages = GameTypes | 'home' | 'getUsername' | 'waiting'
 
+export type Errors = 'refresh' | 'badUsername'
+
 export interface ActiveGame {
   // status: 'home' | 'getUsername' | 'waiting' | 'error' | 'refresh' | GameTypes,
-  status: Pages | 'error' | 'refresh'
+  status: Pages // | 'badUsername' | 'refresh'
   players: { [key: string]: ClientSocket },
   gameType: GameTypes,
   // gameInfo: GameInfo<ActiveGame['gameType']>,
@@ -63,7 +65,8 @@ export interface GameInfo {
 //   extraData: T,
 // }
 
-export interface ServerMsg extends Omit<ActiveGame, 'players'> {
+export interface ServerMsg extends Omit<Omit<ActiveGame, 'players'>, 'status'> {
+  status: Pages | Errors,
   players: Omit<SocketData, 'userId'>[],
   userId: string,
   username: string,

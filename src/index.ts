@@ -131,7 +131,7 @@ const server = Bun.serve<SocketData>({
         currentGame.closeTimeout = setTimeout(() => {
           // console.log('delete gameCode', ws.data.gameCode)
           delete gm.activeGames[ws.data.gameCode]
-          // console.log(gm.activeGames)
+          console.log('deleted gameCode', ws.data.gameCode, gm.activeGames)
         }, /*4 * 60 **/ 60 * 1000) // 4 hours
       } else {
         gm.sendAll(ws.data.gameCode)
