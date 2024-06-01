@@ -39,11 +39,14 @@
 // Re-write handlers in GamesManager
 //  - We now verify game exists before running handler, so hopefully we dont have verify game exists in every handler
 // Rename new ClientMsg names
+// We want to create a way for users to modifier their score
+//  - We have something setup in layout.ts to trigger when a user holds down click for 5 seconds
+//  - Use this to trigger a dialog to edit past scores
 
 import build from '@/lib/build';
 import { randStr } from '@/lib/utils';
 import GamesManager from '@/lib/GamesManager';
-import { SocketData, Test3, } from '@/types';
+import { SocketData, Test2, Test3, } from '@/types';
 
 await build();
 
@@ -81,13 +84,15 @@ const server = Bun.serve<SocketData>({
     message(ws, data) {
       console.log(data)
       const msg: Test3 = JSON.parse(data.toString());
-      if (msg.action === 'start') msg.gameCode = randStr(5);
+      // if (msg.action === 'start') msg.gameCode = randStr(5);
+      if (msg.action === 'start') msg.gameCode = gm.createGame(msg.gameType);
 
-      if (msg.action !== 'start' && ws.data?.gameCode && !gm.activeGames[ws.data.gameCode]) {
-        console.log('SEND REFRESH AND CLOSE SOCKET')
-        ws.send(JSON.stringify({ status: 'refresh' }));
-        ws.close();
-      } else {
+      // if (msg.action !== 'start' && ws.data?.gameCode && !gm.activeGames[ws.data.gameCode]) {
+      // if (!gm.activeGames[(msg as Test2<'start' | 'join'>).gameCode || ws.data.gameCode]) {
+      //   console.log('SEND REFRESH AND CLOSE SOCKET')
+      //   ws.send(JSON.stringify({ status: 'refresh' }));
+      //   ws.close();
+      // } else {
         const res = gm.handler[msg.action](ws, msg as any);
         if (res) {
           ws.send(JSON.stringify(res));
@@ -95,7 +100,7 @@ const server = Bun.serve<SocketData>({
         } else {
           gm.sendAll(ws.data.gameCode);
         }
-      }
+      // }
 
       // const res = gm.handler[msg.action](ws, msg as any);
       // if (res) {
@@ -117,9 +122,9 @@ const server = Bun.serve<SocketData>({
       // console.log('closed', gm.activeGames);
       console.log('closed', ws.data);
       if (!ws.data) return
-      const userId = Bun.hash(ws.data.username).toString();
-      const currentGame = gm.activeGames[ws.data.gameCode];
-      if (!currentGame) throw Error('cant find current game')
+      const { userId, gameCode } = ws.data;
+      const currentGame = gm.activeGames[gameCode];
+      if (!currentGame || !userId || !gameCode) return;
 
       currentGame.players[userId].data.isConnected = false;
       const allClosed = Object.keys(currentGame.players).every(userId => 
@@ -127,12 +132,10 @@ const server = Bun.serve<SocketData>({
       )
       console.log('All Closed?', allClosed)
       if (allClosed) {
-        // console.log('timout set at: ', new Date())
         currentGame.closeTimeout = setTimeout(() => {
-          // console.log('delete gameCode', ws.data.gameCode)
           delete gm.activeGames[ws.data.gameCode]
           console.log('deleted gameCode', ws.data.gameCode, gm.activeGames)
-        }, /*4 * 60 **/ 60 * 1000) // 4 hours
+        }, 4 * 60 * 60 * 1000) // 4 hours
       } else {
         gm.sendAll(ws.data.gameCode)
       }

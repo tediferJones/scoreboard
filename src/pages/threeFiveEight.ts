@@ -15,7 +15,8 @@ export default function threeFiveEight(msg: ServerMsg) {
     .reduce((total, count) => total + count) < msg.currentRound
   );
 
-  if (!msg.gameInfo.extraData?.trumpOpts) throw Error('cant find trump options');
+  if (!msg.gameInfo.extraData.trumpOpts) throw Error('cant find trump options');
+  if (!msg.gameInfo.extraData.maxRound) throw Error('cant find maxRound')
 
   return t('div', { className: 'showOutline flex flex-col gap-4 items-center' }, [
     basicGameInfo({
@@ -55,10 +56,11 @@ export default function threeFiveEight(msg: ServerMsg) {
       orderedPlayers,
       currentRound: msg.currentRound,
       currentUser: currentPlayer.username,
-      maxRound: msg.gameInfo.maxRound,
+      maxRound: msg.gameInfo.extraData.maxRound,
     }),
     t('div', { className: 'showOutline' }, [
-      msg.currentRound > msg.gameInfo.maxRound ? t('h1', { textContent: 'GAME OVER', className: 'font-bold text-xl' }) :
+      msg.currentRound > msg.gameInfo.extraData.maxRound
+        ? t('h1', { textContent: 'GAME OVER', className: 'font-bold text-xl' }) :
         needToPickTrump && currentRoundOrder[0].username === msg.username
           ? t('div', { className: 'grid grid-cols-2 gap-4' }, [
             t('div', { textContent: 'Choose trump suit for this round', className: 'col-span-2' }),

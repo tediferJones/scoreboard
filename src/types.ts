@@ -36,12 +36,12 @@ export interface GameInfo {
   minPlayers: number,
   maxPlayers: number,
   rules: string,
-  maxRound: number,
   extraData: {
     trumpOpts?: string[],
     currentTrump?: string,
     roundGoal?: string[],
     maxScore?: number,
+    maxRound?: number,
   },
 }
 

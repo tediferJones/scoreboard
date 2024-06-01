@@ -1,6 +1,19 @@
 import { getTag as t } from '@/lib/utils';
 
 export default function layout(children: HTMLElement) {
+  let holdTimeout: Timer;
+  window.addEventListener('mousedown', () => {
+    console.log('down')
+    holdTimeout = setTimeout(() => {
+      console.log('held down for 5 seconds')
+    }, 5000)
+  })
+
+  window.addEventListener('mouseup', () => {
+    console.log('up')
+    clearTimeout(holdTimeout)
+  })
+
   return t('div', { className: 'min-h-screen flex flex-col' }, [
     t('div', { className: 'flex justify-between items-center px-8 py-4 border-b' }, [
       t('a', { textContent: 'Scoreboard', className: 'text-xl font-semibold', href: '/' }),

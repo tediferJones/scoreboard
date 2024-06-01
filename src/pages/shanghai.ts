@@ -5,6 +5,7 @@ import basicGameInfo from '@/components/basicGameInfo';
 
 export default function shanghai(msg: ServerMsg) {
   const currentPlayer = msg.players.find(player => player.username === msg.username)!;
+  if (!msg.gameInfo.extraData.maxRound) throw Error('Cant find maxRound');
   return t('div', { className: 'showOutline flex flex-col gap-4 items-center' }, [
     basicGameInfo({
       currentRound: msg.currentRound,
@@ -13,16 +14,16 @@ export default function shanghai(msg: ServerMsg) {
     }),
     t('div', {
       textContent: `Goal: ${msg.gameInfo.extraData?.roundGoal?.[msg.currentRound - 1]}`,
-      className: `showOutline ${msg.currentRound > msg.gameInfo.maxRound ? 'hidden' : 'block'}`
+      className: `showOutline ${msg.currentRound > msg.gameInfo.extraData.maxRound ? 'hidden' : 'block'}`
     }),
     scoreTable({
       orderedPlayers: msg.players,
       currentUser: msg.username,
       currentRound: msg.currentRound,
-      maxRound: msg.gameInfo.maxRound,
+      maxRound: msg.gameInfo.extraData.maxRound,
     }),
     t('div', { className: 'showOutline' }, [
-      msg.currentRound > msg.gameInfo.maxRound
+      msg.currentRound > msg.gameInfo.extraData.maxRound
         ? t('h1', { textContent: 'GAME OVER', className: 'font-bold text-xl' })
         : currentPlayer.score.length === msg.currentRound
           ? t('p', {
