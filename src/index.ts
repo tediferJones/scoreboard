@@ -1,52 +1,31 @@
 // TO-DO
 //
 // Can we use ws.subscribe instead of using activeGames obj?
-// [ DONE ] Extract getServerMsg to its own function
-// [ DONE ] Can we create game join links? i.e. domain.com?gameCode=12345
-// Add the game '1000', https://gamerules.com/rules/1000-card-game/
 // We need to take care of disconnected player's score
 //   - i.e. currentRound should increment if all CONNECTED players have entered their scores for the current round
 //   - Table already handles cases where round score is undefined by putting an 'X' as their score
 //   - It would be nice if we could allow a user to input points for missed rounds
 //    - This would only really happen if the last user to enter their points gets disconnected,
 //      this would trigger the round to increment even if the player scored some amount of points that round
-// [ DONE ] Also might be smart to not delete the game onces all users disconnect, wait some period of time before deleting the game 
-//  - [ DONE ] If a round lasts a very long time and all connections time-out all game data would be lost
 // Only allow users to connect if the game status is 'waiting'
 //  - ISSUE: but then how can people rejoin a game if they disconnect?
 //  - ISSUE: what if someone else wants to join the game midway through?
-// Try to use vite as the bundler, this will allow hot module reloading,
-//  - This should save a lot of dev time cuz we wont have to restart every game after each save
-// Use ws.data.gameCode instead of sending gameCode with each ClientRequest
-//  - Try to do the same for things like username and userId, these are also saved in ws.data
-// Home page should use flexbox instead of grid, this will easily allow rows to wrap for smaller screens
-// [ DONE ] Create components folder to help break up the clutter of render functions
-//  - [ DONE ] Consider also creating a Layout file while we are at it
-// [ DONE ] Handle socket disconnects while game is in the waiting phase
-// [ DONE ] ThreeFiveEight view needs to display the current trump suit
-// Fix errors where currentgame cannot be found at ws.close (in this file)
-// Handle errors where numeric input is '+1'
-//  - Multiple ways to handle this:
-//    - Use a plus/minus toggle button and pure numeric input
-//    - Set the program to calculate the score based on hand count, hand count never needs to be negative
-// Something is still wrong with how we delete old games, test the timeout and when the timeout gets cleared
-//  - Maybe clear the timeout everytime a user enters their score
-//  - POTENTIAL SOLUTION: setTimeout is never actually assigned to currentGame.closeTimeout so there is nothing to clear
-// Reloading the page for every change (see client.ts) seems like a bad idea
-//  - Mainly because it re-fetches the entire website from the server
-// Move maxRound into extraData
-// Move client side query param setting from ws.onmessage to ws.onopen
-// Re-write handlers in GamesManager
-//  - We now verify game exists before running handler, so hopefully we dont have verify game exists in every handler
-// Rename new ClientMsg names
 // We want to create a way for users to modifier their score
 //  - We have something setup in layout.ts to trigger when a user holds down click for 5 seconds
 //  - Use this to trigger a dialog to edit past scores
+// Do we want threeFiveEight to auto calculate score?
+//  - i.e. if user is 8 and picked up 6 hands, they put enter 6, computer does '6 - 8' and assigns a score of -2
+// Try to find a more elegant way to manage url params
+//  - See lib/utils file
+// Add game view for thousand
+// Improve type for ServerMsg, we want it to be similar to AnyExtraData 
+// Why does connecting as the same user (manually triggering badUsername check) cause initial client to display as disconnected
+// Check for ws.data.gameCode in message handler (in this file), if handler is not start or join, there must be a gameCode
+//  - Otherwise exit gracefully, i.e. return refresh msg and probably run ws.close()
 
 import build from '@/lib/build';
-import { randStr } from '@/lib/utils';
 import GamesManager from '@/lib/GamesManager';
-import { SocketData, Test2, Test3, } from '@/types';
+import { SocketData, AnyClientMsg, } from '@/types';
 
 await build();
 
@@ -83,37 +62,17 @@ const server = Bun.serve<SocketData>({
   websocket: {
     message(ws, data) {
       console.log(data)
-      const msg: Test3 = JSON.parse(data.toString());
-      // if (msg.action === 'start') msg.gameCode = randStr(5);
-      if (msg.action === 'start') msg.gameCode = gm.createGame(msg.gameType);
+      const msg: AnyClientMsg = JSON.parse(data.toString());
+      const handler: Function | undefined = gm.handler[msg.action]
+      if (!handler) return ws.close()
 
-      // if (msg.action !== 'start' && ws.data?.gameCode && !gm.activeGames[ws.data.gameCode]) {
-      // if (!gm.activeGames[(msg as Test2<'start' | 'join'>).gameCode || ws.data.gameCode]) {
-      //   console.log('SEND REFRESH AND CLOSE SOCKET')
-      //   ws.send(JSON.stringify({ status: 'refresh' }));
-      //   ws.close();
-      // } else {
-        const res = gm.handler[msg.action](ws, msg as any);
-        if (res) {
-          ws.send(JSON.stringify(res));
-          ws.close();
-        } else {
-          gm.sendAll(ws.data.gameCode);
-        }
-      // }
-
-      // const res = gm.handler[msg.action](ws, msg as any);
-      // if (res) {
-      //   ws.send(JSON.stringify(res));
-      //   ws.close();
-      // // } else if (!gm.activeGames[msg.gameCode || ws.data.gameCode]) {
-      // } else if (!gm.activeGames[ws.data.gameCode]) {
-      //   console.log('SEND REFRESH AND CLOSE SOCKET')
-      //   ws.send(JSON.stringify({ status: 'refresh' }));
-      //   ws.close();
-      // } else {
-      //   gm.sendAll(ws.data.gameCode);
-      // }
+      const res = handler(ws, msg as any);
+      if (res) {
+        ws.send(JSON.stringify(res));
+        ws.close();
+      } else {
+        gm.sendAll(ws.data.gameCode);
+      }
     },
     open(ws) {
       console.log('connected to websocket')

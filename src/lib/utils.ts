@@ -6,7 +6,7 @@ import shanghai from '@/pages/shanghai';
 import thousand from '@/pages/thousand';
 import badUsername from '@/pages/badUsername';
 import refresh from '@/pages/refresh';
-import { ClientActions, ClientMsg, Errors, Pages, ServerMsg, Test2 } from '@/types';
+import { ClientActions, Errors, Pages, ServerMsg, ClientMsg } from '@/types';
 import layout from '@/layout';
 
 type StrIdx = { [key: string]: any }
@@ -56,7 +56,6 @@ export function fromCamelCase(str: string, isPlural?: boolean) {
   }, '') + (isPlural ? 's' : '');
 }
 
-// export const pages: { [key in ServerMsg['status']]: (msg: ServerMsg) => HTMLElement } = {
 export const pages: { [key in Pages | Errors]: (msg: ServerMsg) => HTMLElement } = {
   home,
   getUsername,
@@ -70,12 +69,11 @@ export const pages: { [key in Pages | Errors]: (msg: ServerMsg) => HTMLElement }
 }
 
 export let ws: WebSocket;
-export function sendMsg<T extends ClientActions>(msg: Test2<T>) {
+export function sendMsg<T extends ClientActions>(msg: ClientMsg<T>) {
   ws.send(JSON.stringify(msg))
 }
 
-// export function startWebSocket(initMsg: { [key: string]: string }) {
-export function startWebSocket(initMsg: Test2<'start' | 'join'>) {
+export function startWebSocket(initMsg: ClientMsg<'start' | 'join'>) {
   if (ws) ws.close();
   ws = new WebSocket(`${window.location.protocol === 'http:' ? 'ws:' : 'wss:'}//${window.location.host}`)
   ws.onopen = () => {
@@ -90,30 +88,7 @@ export function startWebSocket(initMsg: Test2<'start' | 'join'>) {
     if (!params.get('username') || !params.get('gameCode')) {
       setQueryParam({ username: msg.username, gameCode: msg.gameCode });
     }
-    // if (!params.get('gameCode') && msg.gameCode) {
-    //   setQueryParam({ gameCode: msg.gameCode })
-    // }
-    // if (!params.get('username') && msg.username) {
-    //   setQueryParam({ username: msg.username })
-    // }
     document.body.innerHTML = '';
     document.body.appendChild(layout(pages[msg.status](msg)));
-    // if (msg.status === 'badUsername') {
-    //   const errorContainer = document.querySelector('#error');
-    //   if (errorContainer && msg.errorMsg) {
-    //     errorContainer.classList.remove('hidden');
-    //     errorContainer.textContent = msg.errorMsg;
-    //   }
-    // } else if (msg.status === 'refresh') {
-    //   window.location.reload();
-    // } else {
-    //   // MOVE THIS INTO ON OPEN CALL, no point in resetting this on every message
-    //   // And is honestly more bound to when the socket opens
-    //   if (!params.get('username') || !params.get('gameCode')) {
-    //     setQueryParam({ username: msg.username, gameCode: msg.gameCode });
-    //   }
-    //   document.body.innerHTML = '';
-    //   document.body.appendChild(layout(pages[msg.status](msg)));
-    // }
   }
 }

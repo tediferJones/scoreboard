@@ -19,20 +19,75 @@ export type Pages = GameTypes | 'home' | 'getUsername' | 'waiting'
 
 export type Errors = 'refresh' | 'badUsername'
 
-export interface ActiveGame {
-  // status: 'home' | 'getUsername' | 'waiting' | 'error' | 'refresh' | GameTypes,
-  status: Pages // | 'badUsername' | 'refresh'
+type AllExtraData = {
+  threeFiveEight: {
+    trumpOpts: string[],
+    currentTrump: string,
+    maxRound: number,
+  },
+  shanghai: {
+    roundGoal: string[],
+    maxRound: number,
+  },
+  thousand: {
+    maxScore: number,
+  }
+}
+
+export interface ActiveGame<T extends GameTypes> {
+  status: Pages
   players: { [key: string]: ClientSocket },
   gameType: GameTypes,
-  // gameInfo: GameInfo<ActiveGame['gameType']>,
-  gameInfo: GameInfo,
+  gameInfo: {
+    minPlayers: number,
+    maxPlayers: number,
+    rules: string,
+    extraData: AllExtraData[T]
+  }
   gameCode: string,
   errorMsg?: string,
   currentRound: number,
   closeTimeout?: Timer,
 }
 
-export interface GameInfo {
+export type AnyActiveGame = {
+  [key in GameTypes]: {
+    status: Pages
+    players: { [key: string]: ClientSocket },
+    gameType: key,
+    gameCode: string,
+    errorMsg?: string,
+    currentRound: number,
+    closeTimeout?: Timer,
+    gameInfo: {
+      minPlayers: number,
+      maxPlayers: number,
+      rules: string,
+      extraData: AllExtraData[key],
+    }
+  }
+}[GameTypes]
+
+// export interface ServerMsg extends Omit<Omit<AnyExtraData, 'players'>, 'status'> {
+export interface ServerMsg extends Omit<Omit<ActiveGameOLD, 'players'>, 'status'> {
+  status: Pages | Errors,
+  players: Omit<SocketData, 'userId'>[],
+  userId: string,
+  username: string,
+}
+
+export interface ActiveGameOLD {
+  status: Pages
+  players: { [key: string]: ClientSocket },
+  gameType: GameTypes,
+  gameInfo: GameInfoOLD,
+  gameCode: string,
+  errorMsg?: string,
+  currentRound: number,
+  closeTimeout?: Timer,
+}
+
+export interface GameInfoOLD {
   minPlayers: number,
   maxPlayers: number,
   rules: string,
@@ -45,54 +100,10 @@ export interface GameInfo {
   },
 }
 
-// export type AllGameInfo = { [key in GameTypes]: GameInfo<GameData[key]> }
-// 
-// type GameData = {
-//   threeFiveEight: {
-//     trumpOpts: string[],
-//     currentTrump?: string,
-//   }
-//   shanghai: {
-//     roundGoal: string[]
-//   }
-// }
-
-// export interface GameInfo<T> {
-//   minPlayers: number,
-//   maxPlayers: number,
-//   rules: string,
-//   maxRound: number,
-//   extraData: T,
-// }
-
-export interface ServerMsg extends Omit<Omit<ActiveGame, 'players'>, 'status'> {
-  status: Pages | Errors,
-  players: Omit<SocketData, 'userId'>[],
-  userId: string,
-  username: string,
-}
-
-export interface StrObj {
-  // [key: string]: string | undefined
-  [key: string]: number | string | undefined
-}
-
-export interface ClientMsg extends StrObj {
-  action: 'start' | 'join' | 'position' | 'ready' | 'score' | 'trump',
-  username: string,
-  userId: string,
-  gameType?: GameTypes,
-  gameCode?: string,
-  position?: 1 | -1,
-  suit?: string,
-  score?: number,
-}
-
-type ClientMsgTest = {
+type ClientMsgOpts = {
   start: {
     username: string,
     gameType: GameTypes,
-    gameCode: string,
   },
   join: {
     username: string,
@@ -110,47 +121,13 @@ type ClientMsgTest = {
   }
 }
 
-export type ClientActions = keyof ClientMsgTest;
-export type Test2<T extends ClientActions> = { // Name: ClientMsg
+export type ClientActions = keyof ClientMsgOpts;
+export type ClientMsg<T extends ClientActions> = {
   action: T,
-} & ClientMsgTest[T]
+} & ClientMsgOpts[T]
 
-export type Test3 = { // Name: AnyClientMsg
+export type AnyClientMsg = {
   [Action in ClientActions]: {
     action: Action
-  } & ClientMsgTest[Action]
+  } & ClientMsgOpts[Action]
 }[ClientActions]
-
-// type ClientActions = 'start' | 'join' | 'position' | 'ready' | 'score' | 'trump'
-// type Client<T> = {
-//   action: ClientActions
-// } & ClientActions[]
-
-// export type ClientMsg = ({
-//   action: 'start',
-//   username: string,
-//   gameType: string,
-// } | {
-//   action: 'join',
-//   username: string,
-//   gameCode: string,
-// } | {
-//   action: 'position',
-//   position: 1 | -1,
-// } | {
-//   action: 'ready'
-// } | {
-//   action: 'score',
-//   score: number,
-// } | {
-//   action: 'trump',
-//   suit: string,
-// })// & StrObj;
-
-// type ClientActions = 'start' | 'join' | 'position' | 'ready' | 'score' | 'trump'
-// type ClientMsg<T> = {
-//   action: ClientActions,
-//   []
-// }
-
-// export type RequireProp<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;

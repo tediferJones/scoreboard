@@ -1,22 +1,20 @@
 import {
   ActiveGame,
   ClientActions,
-  // AllGameInfo,
-  ClientMsg,
   ClientSocket,
   Errors,
-  GameInfo,
   GameTypes,
   ServerMsg,
-  Test2
+  ClientMsg,
+  AnyActiveGame
 } from '@/types';
-import { randStr } from './utils';
+import { randStr } from '@/lib/utils';
 
 export default class GamesManager {
-  activeGames: { [key: string]: ActiveGame | undefined }
-  gameTypes: { [key in GameTypes]: GameInfo }
-  // handler: { [key in ClientMsg['action']]: (ws: ClientSocket, msg: ClientMsg) => void | { status: 'error', errorMsg: string } }
-  handler: { [key in ClientActions]: (ws: ClientSocket, msg: Test2<key>) => void | { status: Errors, errorMsg: string, gameCode?: string } }
+  // activeGames: { [key: string]: ActiveGame<GameTypes> | undefined }
+  activeGames: { [key: string]: AnyActiveGame | undefined }
+  gameTypes: { [key in GameTypes]: ActiveGame<key>['gameInfo'] }
+  handler: { [key in ClientActions]: (ws: ClientSocket, msg: ClientMsg<key>) => void | { status: Errors, errorMsg: string, gameCode?: string } }
 
   constructor() {
     this.activeGames = {};
@@ -28,6 +26,7 @@ export default class GamesManager {
         extraData: {
           trumpOpts: ['♦', '♣', '♥', '♠', '⇑', '⇓'],
           maxRound: 18,
+          currentTrump: '',
         }
       },
       'shanghai': {
@@ -58,20 +57,14 @@ export default class GamesManager {
     };
     this.handler = {
       start: (ws, msg) => {
-        // if (!msg.gameType || !msg.gameCode) throw Error('gameType is required to create a new game')
-        // const { gameCode } = msg;
-        // const userId = Bun.hash(msg.username).toString();
-
-        // this.activeGames[gameCode] = {
-        //   status: 'waiting',
-        //   players: { [userId]: ws },
-        //   gameType: msg.gameType,
-        //   gameInfo: JSON.parse(JSON.stringify(this.gameTypes[msg.gameType])),
-        //   gameCode: gameCode,
-        //   currentRound: 1,
-        // }
-        // this.setUserData(ws, msg)
-        this.handler.join(ws, msg as any)
+        // const joinMsg: ClientMsg<'join'> = msg as any;
+        // joinMsg.gameCode = this.createGame(msg.gameType);
+        // this.handler.join(ws, joinMsg);
+        this.handler.join(ws, {
+          action: 'join',
+          gameCode: this.createGame(msg.gameType),
+          username: msg.username,
+        })
       },
       join: (ws, msg) => {
         this.setUserData(ws, msg);
@@ -118,7 +111,7 @@ export default class GamesManager {
         const { gameCode, userId } = ws.data;
         const currentGame = this.activeGames[gameCode];
         if (!currentGame) return { status: 'refresh', errorMsg: 'Cant find game' }
-        if (currentGame?.players[userId]) {
+        if (currentGame.players[userId]) {
           currentGame.players[userId].data.ready = !currentGame.players[userId].data.ready;
         }
 
@@ -145,7 +138,7 @@ export default class GamesManager {
       trump: (ws, msg) => {
         const currentGame = this.activeGames[ws.data.gameCode];
         if (!currentGame) return { status: 'refresh', errorMsg: 'Cant find game' }
-        if (msg.suit) {
+        if (msg.suit && currentGame.gameType === 'threeFiveEight') {
           const gameData = currentGame.gameInfo.extraData
           ws.data.chosenTrumps.push(msg.suit);
           gameData.currentTrump = msg.suit;
@@ -168,7 +161,7 @@ export default class GamesManager {
     return gameCode;
   }
 
-  setUserData<T extends 'start' | 'join'>(ws: ClientSocket, msg: Test2<T>) {
+  setUserData<T extends 'join'>(ws: ClientSocket, msg: ClientMsg<T>) {
     const currentGame = this.activeGames[msg.gameCode];
     if (!currentGame) throw Error('cant find current game')
     ws.data = {
