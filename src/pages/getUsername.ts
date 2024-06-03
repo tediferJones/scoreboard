@@ -1,7 +1,7 @@
 import { getValById, randStr, startWebSocket, getTag as t } from '@/lib/utils';
 import { ServerMsg } from '@/types';
 
-export default function getUsername(msg: ServerMsg) {
+export default function getUsername(msg: ServerMsg<'getUsername'>) {
   const gameCode = new URL(window.location.href).searchParams.get('gameCode')
   return t('form', { className: 'showOutline flex flex-col gap-4' }, [
     t('p', { textContent: `Game Code: ${gameCode}`, className: 'text-center' }),

@@ -1,5 +1,5 @@
 import { getTag as t } from '@/lib/utils';
-import { ServerMsg } from '@/types';
+import { SocketData } from '@/types';
 
 export default function scoreTable({
   orderedPlayers,
@@ -7,7 +7,7 @@ export default function scoreTable({
   currentRound,
   maxRound,
 }: {
-  orderedPlayers: ServerMsg['players'],
+  orderedPlayers: Omit<SocketData, 'userId'>[],
   currentUser: string,
   currentRound: number,
   maxRound: number,

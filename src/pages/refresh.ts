@@ -1,7 +1,6 @@
 import { getTag as t } from '@/lib/utils';
-import { ServerMsg } from '@/types';
 
-export default function refresh(msg: ServerMsg) {
+export default function refresh() {
   window.location.reload();
   return t('div', { textContent: 'Reload' })
 }

@@ -37,7 +37,7 @@ type AllExtraData = {
 export interface ActiveGame<T extends GameTypes> {
   status: Pages
   players: { [key: string]: ClientSocket },
-  gameType: GameTypes,
+  gameType: T,
   gameInfo: {
     minPlayers: number,
     maxPlayers: number,
@@ -51,53 +51,46 @@ export interface ActiveGame<T extends GameTypes> {
 }
 
 export type AnyActiveGame = {
-  [key in GameTypes]: {
-    status: Pages
-    players: { [key: string]: ClientSocket },
-    gameType: key,
-    gameCode: string,
-    errorMsg?: string,
-    currentRound: number,
-    closeTimeout?: Timer,
-    gameInfo: {
-      minPlayers: number,
-      maxPlayers: number,
-      rules: string,
-      extraData: AllExtraData[key],
-    }
-  }
+  [key in GameTypes]: ActiveGame<key> 
 }[GameTypes]
 
-// export interface ServerMsg extends Omit<Omit<AnyExtraData, 'players'>, 'status'> {
-export interface ServerMsg extends Omit<Omit<ActiveGameOLD, 'players'>, 'status'> {
-  status: Pages | Errors,
+// export type ErrorMsg = {
+export type ErrorMsg<T extends Errors = Errors> = {
+  // status: Errors,
+  status: T,
+  errorMsg: string,
+  gameCode?: string
+}
+
+// This is kind of what we want to do with ServerMsg
+// But will this actually solve the issue with any in startWebSocket function in utils.ts
+type One = 'a' | 'b'
+type Two = 'c' | 'd'
+type Test<T extends One | Two = One | Two> = {
+  [key in One | Two]: { [key2 in key]: key extends One ? string : number }
+}[T]
+const test: Test = {
+  a: '',
+}
+const test2: Test<'c'> = {
+  // b: ''
+  c: 0
+}
+const test3 = {} as Test;
+// if (test3.a) {}
+
+export type Statuses = Pages | Errors
+export type ServerMsg<T extends Statuses = Statuses> = T extends Errors ? ErrorMsg<T> : T extends GameTypes ? Fixed<T> : FixedAny
+export interface Fixed<T extends GameTypes> extends Omit<ActiveGame<T>, 'players'> {
   players: Omit<SocketData, 'userId'>[],
   userId: string,
   username: string,
 }
 
-export interface ActiveGameOLD {
-  status: Pages
-  players: { [key: string]: ClientSocket },
-  gameType: GameTypes,
-  gameInfo: GameInfoOLD,
-  gameCode: string,
-  errorMsg?: string,
-  currentRound: number,
-  closeTimeout?: Timer,
-}
-
-export interface GameInfoOLD {
-  minPlayers: number,
-  maxPlayers: number,
-  rules: string,
-  extraData: {
-    trumpOpts?: string[],
-    currentTrump?: string,
-    roundGoal?: string[],
-    maxScore?: number,
-    maxRound?: number,
-  },
+export interface FixedAny extends Omit<AnyActiveGame, 'players'> {
+  players: Omit<SocketData, 'userId'>[],
+  userId: string,
+  username: string,
 }
 
 type ClientMsgOpts = {

@@ -4,7 +4,7 @@ import scoreTable from '@/components/scoreTable';
 import basicGameInfo from '@/components/basicGameInfo';
 import scoreInput from '@/components/scoreInput';
 
-export default function threeFiveEight(msg: ServerMsg) {
+export default function threeFiveEight(msg: ServerMsg<'threeFiveEight'>) {
   const currentPlayer = msg.players.find(player => player.username === msg.username)!;
   const orderedPlayers = msg.players;
   const handCount = [8, 5, 3];
@@ -14,9 +14,6 @@ export default function threeFiveEight(msg: ServerMsg) {
     msg.players.map(player => player.chosenTrumps.length)
     .reduce((total, count) => total + count) < msg.currentRound
   );
-
-  if (!msg.gameInfo.extraData.trumpOpts) throw Error('cant find trump options');
-  if (!msg.gameInfo.extraData.maxRound) throw Error('cant find maxRound')
 
   return t('div', { className: 'showOutline flex flex-col gap-4 items-center' }, [
     basicGameInfo({
@@ -43,12 +40,12 @@ export default function threeFiveEight(msg: ServerMsg) {
       ...orderedPlayers.map(player => {
         return t('tr', { className: msg.username !== player.username ? '' : 'secondary' }, [
           t('td', { textContent: player.username, className: 'text-sm' }),
-          ...msg.gameInfo.extraData?.trumpOpts?.map(suit => {
+          ...msg.gameInfo.extraData.trumpOpts.map(suit => {
             return t('td', {
               textContent: '✘',
               className: `text-red-500 px-0 ${player.chosenTrumps.includes(suit) ? '' : 'text-transparent'}`,
             })
-          }) || []
+          })
         ])
       })
     ]),
@@ -64,7 +61,7 @@ export default function threeFiveEight(msg: ServerMsg) {
         needToPickTrump && currentRoundOrder[0].username === msg.username
           ? t('div', { className: 'grid grid-cols-2 gap-4' }, [
             t('div', { textContent: 'Choose trump suit for this round', className: 'col-span-2' }),
-            ...msg.gameInfo.extraData?.trumpOpts.map(suit => {
+            ...msg.gameInfo.extraData.trumpOpts.map(suit => {
               return t('button', {
                 textContent: suit,
                 disabled: currentPlayer?.chosenTrumps.includes(suit),

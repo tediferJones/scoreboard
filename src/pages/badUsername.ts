@@ -5,5 +5,5 @@ export default function badUsername(msg: ServerMsg) {
   const url = new URL(window.location.href)
   url.searchParams.delete('username')
   window.history.replaceState(null, '', `/${url.search}`)
-  return getUsername(msg);
+  return getUsername(msg as ServerMsg<'getUsername'>);
 }

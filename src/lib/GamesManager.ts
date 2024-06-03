@@ -2,19 +2,18 @@ import {
   ActiveGame,
   ClientActions,
   ClientSocket,
-  Errors,
   GameTypes,
   ServerMsg,
   ClientMsg,
-  AnyActiveGame
+  AnyActiveGame,
+  ErrorMsg
 } from '@/types';
 import { randStr } from '@/lib/utils';
 
 export default class GamesManager {
-  // activeGames: { [key: string]: ActiveGame<GameTypes> | undefined }
   activeGames: { [key: string]: AnyActiveGame | undefined }
   gameTypes: { [key in GameTypes]: ActiveGame<key>['gameInfo'] }
-  handler: { [key in ClientActions]: (ws: ClientSocket, msg: ClientMsg<key>) => void | { status: Errors, errorMsg: string, gameCode?: string } }
+  handler: { [key in ClientActions]: (ws: ClientSocket, msg: ClientMsg<key>) => void | ErrorMsg }
 
   constructor() {
     this.activeGames = {};
@@ -57,9 +56,6 @@ export default class GamesManager {
     };
     this.handler = {
       start: (ws, msg) => {
-        // const joinMsg: ClientMsg<'join'> = msg as any;
-        // joinMsg.gameCode = this.createGame(msg.gameType);
-        // this.handler.join(ws, joinMsg);
         this.handler.join(ws, {
           action: 'join',
           gameCode: this.createGame(msg.gameType),

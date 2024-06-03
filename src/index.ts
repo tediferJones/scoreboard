@@ -19,9 +19,12 @@
 //  - See lib/utils file
 // Add game view for thousand
 // Improve type for ServerMsg, we want it to be similar to AnyExtraData 
+//  - Got it kind of working, the only thing wrong is the use of 'any' type startWebSocket function in utils.ts
+//  - Dont forget to cleanup types file and specifically names for Fixed and FixedAny types
 // Why does connecting as the same user (manually triggering badUsername check) cause initial client to display as disconnected
 // Check for ws.data.gameCode in message handler (in this file), if handler is not start or join, there must be a gameCode
 //  - Otherwise exit gracefully, i.e. return refresh msg and probably run ws.close()
+// Prevent players from joining if adding them would exceed gameInfo.maxPlayers
 
 import build from '@/lib/build';
 import GamesManager from '@/lib/GamesManager';
@@ -66,7 +69,8 @@ const server = Bun.serve<SocketData>({
       const handler: Function | undefined = gm.handler[msg.action]
       if (!handler) return ws.close()
 
-      const res = handler(ws, msg as any);
+      // const res = handler(ws, msg as any);
+      const res = handler(ws, msg);
       if (res) {
         ws.send(JSON.stringify(res));
         ws.close();

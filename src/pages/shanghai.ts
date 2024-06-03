@@ -3,7 +3,7 @@ import { getValById, sendMsg, getTag as t } from '@/lib/utils';
 import scoreTable from '@/components/scoreTable';
 import basicGameInfo from '@/components/basicGameInfo';
 
-export default function shanghai(msg: ServerMsg) {
+export default function shanghai(msg: ServerMsg<'shanghai'>) {
   const currentPlayer = msg.players.find(player => player.username === msg.username)!;
   if (!msg.gameInfo.extraData.maxRound) throw Error('Cant find maxRound');
   return t('div', { className: 'showOutline flex flex-col gap-4 items-center' }, [

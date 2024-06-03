@@ -1,7 +1,7 @@
 import { fromCamelCase, sendMsg, getTag as t } from '@/lib/utils';
 import { ServerMsg } from '@/types';
 
-export default function waiting(msg: ServerMsg) {
+export default function waiting(msg: ServerMsg<'waiting'>) {
   const { minPlayers, maxPlayers } = msg.gameInfo;
   const requiredPlayers = minPlayers === maxPlayers ? minPlayers : `${minPlayers} - ${maxPlayers}`;
   console.log('Ordered players:', msg.players)

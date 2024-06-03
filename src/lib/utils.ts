@@ -6,7 +6,7 @@ import shanghai from '@/pages/shanghai';
 import thousand from '@/pages/thousand';
 import badUsername from '@/pages/badUsername';
 import refresh from '@/pages/refresh';
-import { ClientActions, Errors, Pages, ServerMsg, ClientMsg } from '@/types';
+import { ClientActions, ServerMsg, ClientMsg, Statuses } from '@/types';
 import layout from '@/layout';
 
 type StrIdx = { [key: string]: any }
@@ -56,11 +56,10 @@ export function fromCamelCase(str: string, isPlural?: boolean) {
   }, '') + (isPlural ? 's' : '');
 }
 
-export const pages: { [key in Pages | Errors]: (msg: ServerMsg) => HTMLElement } = {
+export const pages: { [key in Statuses]: (msg: ServerMsg<key>) => HTMLElement } = {
   home,
   getUsername,
   waiting,
-  // error,
   threeFiveEight,
   shanghai,
   thousand,
@@ -85,10 +84,10 @@ export function startWebSocket(initMsg: ClientMsg<'start' | 'join'>) {
     const msg: ServerMsg = JSON.parse(ws.data)
     console.log('NEW MESSAGE', msg)
     const params = new URLSearchParams(window.location.toString())
-    if (!params.get('username') || !params.get('gameCode')) {
-      setQueryParam({ username: msg.username, gameCode: msg.gameCode });
+    if (msg.status !== 'badUsername' && msg.status !== 'refresh' && (!params.get('username') || !params.get('gameCode'))) {
+      setQueryParam({ username: msg.username, gameCode: msg.gameCode || '' });
     }
     document.body.innerHTML = '';
-    document.body.appendChild(layout(pages[msg.status](msg)));
+    document.body.appendChild(layout(pages[msg.status](msg as any)));
   }
 }

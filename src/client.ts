@@ -16,9 +16,9 @@ function handleInitialRender() {
   if (gameCode && username) {
     startWebSocket({ action: 'join', username, gameCode });
   } else if (gameCode) {
-    document.body.append(layout(pages.getUsername({} as ServerMsg)));
+    document.body.append(layout(pages.getUsername({} as ServerMsg<'getUsername'>)));
   } else {
-    document.body.append(layout(pages.home({} as ServerMsg)));
+    document.body.append(layout(pages.home({} as ServerMsg<'home'>)));
   }
 }
 handleInitialRender();
