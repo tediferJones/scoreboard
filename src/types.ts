@@ -31,6 +31,7 @@ type AllExtraData = {
   },
   thousand: {
     maxScore: number,
+    maxRound: number,
   }
 }
 
@@ -54,30 +55,11 @@ export type AnyActiveGame = {
   [key in GameTypes]: ActiveGame<key> 
 }[GameTypes]
 
-// export type ErrorMsg = {
 export type ErrorMsg<T extends Errors = Errors> = {
-  // status: Errors,
   status: T,
   errorMsg: string,
   gameCode?: string
 }
-
-// This is kind of what we want to do with ServerMsg
-// But will this actually solve the issue with any in startWebSocket function in utils.ts
-type One = 'a' | 'b'
-type Two = 'c' | 'd'
-type Test<T extends One | Two = One | Two> = {
-  [key in One | Two]: { [key2 in key]: key extends One ? string : number }
-}[T]
-const test: Test = {
-  a: '',
-}
-const test2: Test<'c'> = {
-  // b: ''
-  c: 0
-}
-const test3 = {} as Test;
-// if (test3.a) {}
 
 export type Statuses = Pages | Errors
 export type ServerMsg<T extends Statuses = Statuses> = T extends Errors ? ErrorMsg<T> : T extends GameTypes ? Fixed<T> : FixedAny

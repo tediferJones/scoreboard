@@ -51,6 +51,7 @@ export default class GamesManager {
         rules: 'https://gamerules.com/rules/1000-card-game/',
         extraData: {
           maxScore: 1000,
+          maxRound: 999,
         }
       }
     };
@@ -128,8 +129,22 @@ export default class GamesManager {
           const roundIsOver = Object.keys(currentGame.players).every(userId => (
             currentGame.players[userId].data.score.length === currentGame.currentRound
           ));
-          if (roundIsOver) currentGame.currentRound += 1;
+          const thousandGameOver = (
+            currentGame.gameType === 'thousand' &&
+              score.reduce((tot, num) => tot + num, 0) >= currentGame.gameInfo.extraData.maxScore
+          )
+          if (thousandGameOver) {
+            currentGame.gameInfo.extraData.maxRound = currentGame.currentRound
+          } 
+          if (roundIsOver) {
+            currentGame.currentRound += 1;
+          }
+          // if (roundIsOver) currentGame.currentRound += 1;
         }
+
+        // if (currentGame.gameType === 'thousand' && score.reduce((tot, num) => tot + num, 0) >= 1000) {
+        //   currentGame.gameInfo.extraData.maxRound = currentGame.currentRound + 1
+        // }
       },
       trump: (ws, msg) => {
         const currentGame = this.activeGames[ws.data.gameCode];
