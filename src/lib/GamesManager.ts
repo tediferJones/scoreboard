@@ -64,10 +64,10 @@ export default class GamesManager {
         })
       },
       join: (ws, msg) => {
+        const currentGame = this.activeGames[msg.gameCode];
+        if (!currentGame) return { status: 'refresh', errorMsg: 'Cant find game' }
         this.setUserData(ws, msg);
         const { gameCode, userId } = ws.data;
-        const currentGame = this.activeGames[gameCode];
-        if (!currentGame) return { status: 'refresh', errorMsg: 'Cant find game' }
 
         if (currentGame.closeTimeout) {
           clearTimeout(currentGame.closeTimeout);

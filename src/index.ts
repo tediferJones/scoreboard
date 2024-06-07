@@ -25,10 +25,13 @@
 // Check for ws.data.gameCode in message handler (in this file), if handler is not start or join, there must be a gameCode
 //  - Otherwise exit gracefully, i.e. return refresh msg and probably run ws.close()
 // Prevent players from joining if adding them would exceed gameInfo.maxPlayers
+// Delete extranious console.logs and comments
+// [ DONE ] Fix move current bun start script to bun run dev
+// [ DONE ] In gamesManager join handler, check that game exists before assigning userData
 
 import build from '@/lib/build';
 import GamesManager from '@/lib/GamesManager';
-import { SocketData, AnyClientMsg, } from '@/types';
+import { SocketData, AnyClientMsg } from '@/types';
 
 await build();
 
@@ -37,7 +40,7 @@ const router = new Bun.FileSystemRouter({
   dir: 'src/public/',
   fileExtensions: ['.html', '.js', '.css', '.png', '.json']
 });
-console.log(router)
+if (Bun.env.DEBUG) console.log(router)
 
 const gm = new GamesManager();
 
@@ -45,7 +48,7 @@ const server = Bun.serve<SocketData>({
   fetch(req, server) {
     const match = router.match(req.url)
     const gameCode = new URL(req.url).searchParams.get('gameCode');
-    console.log(req.url)
+    if (Bun.env.DEBUG) console.log(req.url)
 
     if (server.upgrade(req)) {
       return
@@ -64,7 +67,7 @@ const server = Bun.serve<SocketData>({
 
   websocket: {
     message(ws, data) {
-      console.log(data)
+      if (Bun.env.DEBUG) console.log(data)
       const msg: AnyClientMsg = JSON.parse(data.toString());
       const handler: Function | undefined = gm.handler[msg.action]
       if (!handler) return ws.close()
@@ -78,12 +81,8 @@ const server = Bun.serve<SocketData>({
         gm.sendAll(ws.data.gameCode);
       }
     },
-    open(ws) {
-      console.log('connected to websocket')
-    },
     close(ws) {
-      // console.log('closed', gm.activeGames);
-      console.log('closed', ws.data);
+      if (Bun.env.DEBUG) console.log('closed', ws.data);
       if (!ws.data) return
       const { userId, gameCode } = ws.data;
       const currentGame = gm.activeGames[gameCode];
@@ -93,11 +92,11 @@ const server = Bun.serve<SocketData>({
       const allClosed = Object.keys(currentGame.players).every(userId => 
         !currentGame.players[userId].data.isConnected
       )
-      console.log('All Closed?', allClosed)
+      if (Bun.env.DEBUG) console.log('All Closed?', allClosed)
       if (allClosed) {
         currentGame.closeTimeout = setTimeout(() => {
           delete gm.activeGames[ws.data.gameCode]
-          console.log('deleted gameCode', ws.data.gameCode, gm.activeGames)
+          if (Bun.env.DEBUG) console.log('deleted gameCode', ws.data.gameCode, gm.activeGames)
         }, 4 * 60 * 60 * 1000) // 4 hours
       } else {
         gm.sendAll(ws.data.gameCode)
