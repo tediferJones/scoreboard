@@ -28,6 +28,8 @@
 // Delete extranious console.logs and comments
 // [ DONE ] Fix move current bun start script to bun run dev
 // [ DONE ] In gamesManager join handler, check that game exists before assigning userData
+// Give players the ability to dropout of a running game
+//  - This way currentRound can still increment after a player drops out
 
 import build from '@/lib/build';
 import GamesManager from '@/lib/GamesManager';

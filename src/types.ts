@@ -92,7 +92,11 @@ type ClientMsgOpts = {
     score: number,
   },
   trump: {
-    suit: string
+    suit: string,
+  },
+  fixScore: {
+    fixedScore: number,
+    index: number,
   }
 }
 

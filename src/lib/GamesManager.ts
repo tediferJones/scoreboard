@@ -124,7 +124,8 @@ export default class GamesManager {
         const currentGame = this.activeGames[gameCode];
         if (!currentGame) return { status: 'refresh', errorMsg: 'Cant find game' }
         if (score.length < currentGame.currentRound) {
-          score.push(msg.score || 0)
+          // score.push(msg.score || 0)
+          score[currentGame.currentRound - 1] = msg.score || 0
           // If all players have entered their score for the current round, increment currentRound prop
           const roundIsOver = Object.keys(currentGame.players).every(userId => (
             currentGame.players[userId].data.score.length === currentGame.currentRound
@@ -132,19 +133,14 @@ export default class GamesManager {
           const thousandGameOver = (
             currentGame.gameType === 'thousand' &&
               score.reduce((tot, num) => tot + num, 0) >= currentGame.gameInfo.extraData.maxScore
-          )
+          );
           if (thousandGameOver) {
             currentGame.gameInfo.extraData.maxRound = currentGame.currentRound
           } 
           if (roundIsOver) {
             currentGame.currentRound += 1;
           }
-          // if (roundIsOver) currentGame.currentRound += 1;
         }
-
-        // if (currentGame.gameType === 'thousand' && score.reduce((tot, num) => tot + num, 0) >= 1000) {
-        //   currentGame.gameInfo.extraData.maxRound = currentGame.currentRound + 1
-        // }
       },
       trump: (ws, msg) => {
         const currentGame = this.activeGames[ws.data.gameCode];
@@ -154,6 +150,12 @@ export default class GamesManager {
           ws.data.chosenTrumps.push(msg.suit);
           gameData.currentTrump = msg.suit;
         }
+      },
+      fixScore: (ws, msg) => {
+        console.log(msg)
+        const currentGame = this.activeGames[ws.data.gameCode];
+        if (!currentGame) return { status: 'refresh', errorMsg: 'Cant find game' }
+        ws.data.score[msg.index] = msg.fixedScore;
       }
     }
   }

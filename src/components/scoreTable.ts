@@ -1,4 +1,4 @@
-import { getTag as t } from '@/lib/utils';
+import { sendMsg, getTag as t } from '@/lib/utils';
 import { SocketData } from '@/types';
 
 export default function scoreTable({
@@ -27,9 +27,40 @@ export default function scoreTable({
         return t('tr', {} , [
           t('td', { textContent: `${i + 1}`, className: 'font-semibold w-1/6' }),
           ...orderedPlayers.map(player => {
+            const elementId = `cell-${player.username}-${i}`;
+            const scoreIsValid = typeof(player.score[i]) === 'number'
+            let isOpen = false;
             return t('td', {
-              textContent: player.score[i] !== undefined ? `${player.score[i]}` : 'X',
-              className: `border text-center ${currentUser !== player.username ? '' : 'secondary'}`
+              textContent: scoreIsValid ? `${player.score[i]}` : 'X',
+              className: `border text-center ${currentUser !== player.username ? '' : 'secondary'}`,
+              id: elementId,
+              ondblclick: () => {
+                if (!isOpen && scoreIsValid && currentUser === player.username) {
+                  console.log('held down for 2 seconds')
+                  isOpen = true;
+                  const element: HTMLTableCellElement | null = document.querySelector(`#${elementId}`)
+                  if (element) {
+                    element.innerText = '';
+                    element.appendChild(
+                      t('input', {
+                        type: 'number',
+                        className: 'w-16',
+                        value: player.score[i],
+                        autofocus: true,
+                        onblur: (e) => {
+                          console.log('submit fixed score')
+                          sendMsg({
+                            action: 'fixScore',
+                            fixedScore: Number((e.currentTarget as HTMLInputElement).value),
+                            index: i
+                          })
+                          isOpen = false;
+                        }
+                      })
+                    )
+                  }
+                }
+              },
             })
           })
         ])
