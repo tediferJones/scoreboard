@@ -66,6 +66,7 @@ export default class GamesManager {
       join: (ws, msg) => {
         const currentGame = this.activeGames[msg.gameCode];
         if (!currentGame) return { status: 'refresh', errorMsg: 'Cant find game' }
+
         this.setUserData(ws, msg);
         const { gameCode, userId } = ws.data;
 
@@ -88,6 +89,11 @@ export default class GamesManager {
             gameCode,
           }
         }
+
+        if (Object.keys(currentGame.players).length === currentGame.gameInfo.maxPlayers) {
+          return { status: 'gameFull', errorMsg: 'Game is already full' }
+        }
+
         currentGame.players[userId] = ws;
       },
       position: (ws, msg) => {

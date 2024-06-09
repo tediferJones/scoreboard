@@ -6,6 +6,7 @@ import shanghai from '@/pages/shanghai';
 import thousand from '@/pages/thousand';
 import badUsername from '@/pages/badUsername';
 import refresh from '@/pages/refresh';
+import gameFull from '@/pages/gameFull';
 import { ClientActions, ServerMsg, ClientMsg, Statuses } from '@/types';
 import layout from '@/layout';
 
@@ -65,6 +66,7 @@ export const pages: { [key in Statuses]: (msg: ServerMsg<key>) => HTMLElement } 
   thousand,
   badUsername,
   refresh,
+  gameFull,
 }
 
 export let ws: WebSocket;
@@ -84,7 +86,7 @@ export function startWebSocket(initMsg: ClientMsg<'start' | 'join'>) {
     const msg: ServerMsg = JSON.parse(ws.data)
     console.log('NEW MESSAGE', msg)
     const params = new URLSearchParams(window.location.toString())
-    if (msg.status !== 'badUsername' && msg.status !== 'refresh' && (!params.get('username') || !params.get('gameCode'))) {
+    if (msg.status !== 'gameFull' && msg.status !== 'badUsername' && msg.status !== 'refresh' && (!params.get('username') || !params.get('gameCode'))) {
       setQueryParam({ username: msg.username, gameCode: msg.gameCode || '' });
     }
     document.body.innerHTML = '';

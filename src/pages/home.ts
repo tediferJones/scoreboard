@@ -5,10 +5,11 @@ import {
   validateInputs,
   randStr
 } from '@/lib/utils';
-import { GameTypes } from '@/types';
+import { GameTypes, ServerMsg } from '@/types';
 
-export default function home() {
+export default function home(msg: ServerMsg<'home'>) {
   return t('form', { className: 'showOutline grid grid-cols-3 gap-4', id: 'initForm' }, [
+    t('div', { className: `${msg.errorMsg ? 'text-red-500 col-span-3 text-center' : 'hidden'}`, textContent: msg.errorMsg }),
     t('label', { textContent: 'Username:', htmlFor: 'username' }),
     t('input', {
       className: 'col-span-2',

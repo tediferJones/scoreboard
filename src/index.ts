@@ -24,7 +24,7 @@
 // Why does connecting as the same user (manually triggering badUsername check) cause initial client to display as disconnected
 // Check for ws.data.gameCode in message handler (in this file), if handler is not start or join, there must be a gameCode
 //  - Otherwise exit gracefully, i.e. return refresh msg and probably run ws.close()
-// Prevent players from joining if adding them would exceed gameInfo.maxPlayers
+// [ DONE ] Prevent players from joining if adding them would exceed gameInfo.maxPlayers
 // Delete extranious console.logs and comments
 // [ DONE ] Fix move current bun start script to bun run dev
 // [ DONE ] In gamesManager join handler, check that game exists before assigning userData

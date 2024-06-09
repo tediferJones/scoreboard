@@ -17,7 +17,7 @@ export type GameTypes = 'threeFiveEight' | 'shanghai' | 'thousand'
 
 export type Pages = GameTypes | 'home' | 'getUsername' | 'waiting'
 
-export type Errors = 'refresh' | 'badUsername'
+export type Errors = 'refresh' | 'badUsername' | 'gameFull'
 
 type AllExtraData = {
   threeFiveEight: {
