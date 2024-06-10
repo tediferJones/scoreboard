@@ -30,6 +30,9 @@
 // [ DONE ] In gamesManager join handler, check that game exists before assigning userData
 // Give players the ability to dropout of a running game
 //  - This way currentRound can still increment after a player drops out
+// Clear gameCode url param in gameFull.ts
+//
+// Entire day was sucked up by updating computer
 
 import build from '@/lib/build';
 import GamesManager from '@/lib/GamesManager';
